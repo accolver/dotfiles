@@ -1,0 +1,34 @@
+# backend = "portaudio"
+
+ap_port = 443
+relinking = true
+bitrate = 320
+gapless = true
+audio_cache = true
+
+
+# Use "Shift+q" to quit instead of the default "q"
+[keybindings]
+"Shift+q" = "quit"
+"q" = "noop"
+
+[theme]
+background = "black"
+primary = "light white"
+secondary = "light black"
+title = "blue"
+playing = "magenta"
+playing_bg = "black"
+playing_selected = "light magenta"
+highlight = "light white"
+highlight_bg = "light black"
+highlight_inactive_bg = "black"
+error = "light red"
+error_bg = "red"
+statusbar = "white"
+statusbar_progress = "blue"
+statusbar_progress_bg = "light black"
+statusbar_bg = "light black"
+cmdline = "white"
+cmdline_bg = "light black"
+search_match = "yellow"

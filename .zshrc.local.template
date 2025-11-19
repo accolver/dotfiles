@@ -1,0 +1,30 @@
+# =============================================================================
+# Local machine secrets and configurations
+# Copy this file to ~/.zshrc.local and fill in your actual values
+# =============================================================================
+
+# API Keys
+export ANTHROPIC_API_KEY="REPLACE_WITH_REAL_KEY"
+export GROQ_API_KEY="REPLACE_WITH_REAL_KEY"
+export AVANTE_OPENAI_API_KEY=$GROQ_API_KEY
+export OPENAI_API_KEY="REPLACE_WITH_REAL_KEY"
+export FIRECRAWL_API_KEY="REPLACE_WITH_REAL_KEY"
+export GEMINI_API_KEY="REPLACE_WITH_REAL_KEY"
+
+# Service Tokens
+export ASANA_ACCESS_TOKEN="REPLACE_WITH_REAL_TOKEN"
+export CLOUDFLARED_TUNNEL_KEY="REPLACE_WITH_REAL_KEY"
+
+# Claude settings
+export CLAUDE_BASH_MAINTAIN_WORKING_DIR=1
+
+# Custom utility for running Claude Code with Kimi-K2 (using Groq)
+# Uncomment and update path if you use this
+# source ~/.config/kimi/kimi.sh
+
+# =============================================================================
+# Config file API keys (used by install.sh for substitution)
+# =============================================================================
+# These are injected into config files during install
+export CONTEXT7_API_KEY="REPLACE_WITH_REAL_KEY"
+export FIRECRAWL_API_KEY="REPLACE_WITH_REAL_KEY"
