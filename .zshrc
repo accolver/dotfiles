@@ -100,8 +100,10 @@ export GPG_TTY=$(tty)
 source <(fzf --zsh)
 export FZF_CTRL_T_OPTS="--preview 'bat -n --theme='tokyonight_storm' --color=always --line-range :500 {}'"
 export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
-
-alias ls="eza --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions --all"
+ff() {
+  aerospace list-windows --all | fzf --bind 'enter:execute(bash -c "aerospace focus --window-id {1}")+abort'
+}
+# alias ls="eza --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions --all"
 alias ll="eza --color=always --long --git --no-filesize --icons=always --no-time --all"
 alias python="python3"
 alias c="clear"
@@ -137,6 +139,10 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+# bun
+export PATH="$PATH:$HOME/.bun/bin"
+# bun end
 
 # nvm
 export NVM_DIR="$HOME/.nvm"
@@ -174,7 +180,9 @@ function y() {
 
 export GPG_TTY=$(tty)
 
-
+# Git Worktree: https://github.com/k1LoW/git-wt
+eval "$(git wt --init zsh)"
+# End Git Worktree
 
 # Zoxide
 # shellcheck shell=bash
@@ -380,3 +388,18 @@ x() {
 
   return $exit_code
 }
+
+
+function zj () {
+    local name="$1"
+    command zellij attach "${name}" 2> /dev/null
+    if [ $? -ne 0 ]; then
+        echo "🚀 Creating new session '${name}'..."
+        if [ -f "$HOME/.config/zellij/layouts/${name}.kdl" ]; then
+            command zellij -s "${name}" -n "${name}"
+        else
+            command zellij -s "${name}"
+        fi
+    fi
+}
+
