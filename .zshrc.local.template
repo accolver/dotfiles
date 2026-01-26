@@ -28,3 +28,4 @@ export CLAUDE_BASH_MAINTAIN_WORKING_DIR=1
 # These are injected into config files during install
 export CONTEXT7_API_KEY="REPLACE_WITH_REAL_KEY"
 export FIRECRAWL_API_KEY="REPLACE_WITH_REAL_KEY"
+export BRAVE_API_KEY="REPLACE_WITH_REAL_KEY"

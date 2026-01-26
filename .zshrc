@@ -150,6 +150,15 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "/opt/homebrew/opt/nvm/etc/bash_completions.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completions.d/nvm"
 # nvm end
 
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+
+# Java Version Switcher
+jdk() {
+  version=$1
+  export JAVA_HOME=$(/usr/libexec/java_home -v "$version")
+  java -version
+}
+
 # source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
@@ -403,3 +412,5 @@ function zj () {
     fi
 }
 
+
+alias claude-mem='bun "/Users/alancolver/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs"'
