@@ -75,7 +75,7 @@ BAT_THEME="tokyonight_storm"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(bun deno direnv docker gcloud git nvm tmux tmuxinator)
+plugins=(bun deno direnv docker gcloud git tmux tmuxinator)
 source $ZSH/oh-my-zsh.sh
 
 
@@ -85,12 +85,6 @@ if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/google-cloud-sdk/
 # The next line enables shell command completion for gcloud.
 if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-cloud-sdk/completion.zsh.inc"; fi
 eval "$(fzf --zsh)"
-
-
-alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
 
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/terragrunt terragrunt
@@ -144,12 +138,6 @@ esac
 export PATH="$PATH:$HOME/.bun/bin"
 # bun end
 
-# nvm
-export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completions.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completions.d/nvm"
-# nvm end
-
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 
 # Java Version Switcher
@@ -188,10 +176,6 @@ function y() {
 }
 
 export GPG_TTY=$(tty)
-
-# Git Worktree: https://github.com/k1LoW/git-wt
-eval "$(git wt --init zsh)"
-# End Git Worktree
 
 # Zoxide
 # shellcheck shell=bash
@@ -412,5 +396,22 @@ function zj () {
     fi
 }
 
+eval "$(mise activate zsh)"
 
-alias claude-mem='bun "/Users/alancolver/.claude/plugins/marketplaces/thedotmack/plugin/scripts/worker-service.cjs"'
+
+# Caffeinate aliases - keep Mac awake
+alias awake='sudo pmset -a disablesleep 1 && echo "☕ Sleep fully disabled (lid-safe)"'
+alias rest='sudo pmset -a disablesleep 0 && echo "😴 Sleep re-enabled"'
+
+
+# OpenClaw Completion
+source "/Users/alancolver/.openclaw/completions/openclaw.zsh"
+
+# OpenClaw TUI aliases
+alias claw='openclaw tui'
+alias claw-realestate='openclaw tui --session agent:realestate:main'
+alias claw-bounty='openclaw tui --session agent:bounty-ninja:main'
+alias claw-redshift='openclaw tui --session agent:redshift:main'
+alias claw-bento='openclaw tui --session agent:bento:main'
+
+if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi

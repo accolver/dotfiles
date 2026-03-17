@@ -20,8 +20,8 @@ require("lazy").setup({
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
 
     -- Disable certain LazyVim plugins
-    { "ggandor/leap.nvim", enabled = false },
-    { "ggandor/flit.nvim", enabled = false },
+    -- leap.nvim was renamed to https://github.com/ggandor/leap.nvim (removed)
+    -- flit.nvim was removed from LazyVim
 
     -- import/override with your plugins
     { import = "plugins" },
