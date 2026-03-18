@@ -9,7 +9,8 @@ for font in Hack Meslo NerdFontsSymbolsOnly; do
   unzip -o "nerd-fonts-${font}.zip" -d ~/.local/share/fonts
   rm "nerd-fonts-${font}.zip"
 done
-fc-cache -f -v
+rm -rf /home/linuxbrew/.linuxbrew/var/cache/fontconfig 2>/dev/null || true
+fc-cache -f -v || true
 
 echo "=== Installing system packages via apt ==="
 sudo apt update
@@ -23,7 +24,7 @@ if ! command -v gcloud &> /dev/null; then
 fi
 
 echo "=== Running brew bundle ==="
-brew bundle --file=Brewfile_linux
+brew bundle install --file=Brewfile_linux
 
 echo "=== Installing Flatpak apps ==="
 flatpak install -y flathub \
@@ -33,13 +34,8 @@ flatpak install -y flathub \
   com.usebruno.Bruno \
   io.dbeaver.DBeaverCommunity \
   com.discordapp.Discord \
-  com.google.Chrome \
-  rest.insomnia.Insomnia \
   dev.lapce.lapce \
-  net.mullvad.MullvadBrowser \
   md.obsidian.Obsidian \
-  com.getpostman.Postman \
-  one.flipperzero.qFlipper \
   org.signal.Signal \
   com.spotify.Client \
   com.valvesoftware.Steam \
@@ -47,10 +43,8 @@ flatpak install -y flathub \
   org.telegram.desktop \
   com.todoist.Todoist \
   org.videolan.VLC \
-  com.vscodium.codium \
   org.wezfurlong.wezterm \
   dev.zed.Zed \
-  org.bitcoincore.bitcoin-qt \
   com.usebottles.bottles
 
 echo "=== Setup complete ==="
