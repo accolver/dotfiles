@@ -1,5 +1,14 @@
+# Detect platform
+case "$(uname -s)" in
+    Linux*)     PLATFORM=linux ;;
+    Darwin*)    PLATFORM=macos ;;
+    *)          PLATFORM=unknown ;;
+esac
+
 # Add deno completions to search path
-if [[ ":$FPATH:" != *":/Users/alancolver/completions:"* ]]; then export FPATH="/Users/alancolver/completions:$FPATH"; fi
+if [[ "$PLATFORM" == "Darwin" ]]; then
+    if [[ ":$FPATH:" != *":/Users/alancolver/completions:"* ]]; then export FPATH="/Users/alancolver/completions:$FPATH"; fi
+fi
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -87,7 +96,11 @@ if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-clou
 eval "$(fzf --zsh)"
 
 autoload -U +X bashcompinit && bashcompinit
-complete -o nospace -C /opt/homebrew/bin/terragrunt terragrunt
+if [[ "$PLATFORM" == "Darwin" ]]; then
+    complete -o nospace -C /opt/homebrew/bin/terragrunt terragrunt
+elif command -v terragrunt &>/dev/null; then
+    complete -o nospace -C $(which terragrunt) terragrunt
+fi
 
 export GPG_TTY=$(tty)
 
@@ -108,12 +121,21 @@ alias oc="opencode"
 ocs() { opencode serve --port ${1:-59121}; }
 oca() { opencode attach http://127.0.0.1:${1:-59121}; }
 
-alias tga="time terragrunt apply; afplay /System/Library/Sounds/Glass.aiff; date"
-alias tgaa="time terragrunt apply -auto-approve; afplay /System/Library/Sounds/Glass.aiff; date"
-alias tgp="time terragrunt plan; afplay /System/Library/Sounds/Glass.aiff; date"
-alias tgr="time terragrunt plan -refresh=true; afplay /System/Library/Sounds/Glass.aiff; date"
-alias tgi="time terragrunt init; afplay /System/Library/Sounds/Glass.aiff; date"
-alias tgiu="time terragrunt init -upgrade; afplay /System/Library/Sounds/Glass.aiff; date"
+if [[ "$PLATFORM" == "Darwin" ]]; then
+    alias tga="time terragrunt apply; afplay /System/Library/Sounds/Glass.aiff; date"
+    alias tgaa="time terragrunt apply -auto-approve; afplay /System/Library/Sounds/Glass.aiff; date"
+    alias tgp="time terragrunt plan; afplay /System/Library/Sounds/Glass.aiff; date"
+    alias tgr="time terragrunt plan -refresh=true; afplay /System/Library/Sounds/Glass.aiff; date"
+    alias tgi="time terragrunt init; afplay /System/Library/Sounds/Glass.aiff; date"
+    alias tgiu="time terragrunt init -upgrade; afplay /System/Library/Sounds/Glass.aiff; date"
+else
+    alias tga="time terragrunt apply; date"
+    alias tgaa="time terragrunt apply -auto-approve; date"
+    alias tgp="time terragrunt plan; date"
+    alias tgr="time terragrunt plan -refresh=true; date"
+    alias tgi="time terragrunt init; date"
+    alias tgiu="time terragrunt init -upgrade; date"
+fi
 
 alias ttyd-local="ttyd -i 0.0.0.0 -W zsh"
 alias v="nvim"
@@ -127,7 +149,11 @@ autoload -Uz compinit
 compinit
 
 # pnpm
-export PNPM_HOME="$HOME/Library/pnpm"
+if [[ "$PLATFORM" == "Darwin" ]]; then
+    export PNPM_HOME="$HOME/Library/pnpm"
+else
+    export PNPM_HOME="$HOME/.local/share/pnpm"
+fi
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -138,12 +164,25 @@ esac
 export PATH="$PATH:$HOME/.bun/bin"
 # bun end
 
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+# Java
+if [[ "$PLATFORM" == "Darwin" ]]; then
+    export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+else
+    if [ -d "/usr/lib/jvm/java-21-openjdk-amd64" ]; then
+        export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
+    fi
+fi
 
 # Java Version Switcher
 jdk() {
   version=$1
-  export JAVA_HOME=$(/usr/libexec/java_home -v "$version")
+  if [[ "$PLATFORM" == "Darwin" ]]; then
+      export JAVA_HOME=$(/usr/libexec/java_home -v "$version")
+  else
+      if [ -d "/usr/lib/jvm/java-${version}-openjdk-amd64" ]; then
+          export JAVA_HOME="/usr/lib/jvm/java-${version}-openjdk-amd64"
+      fi
+  fi
   java -version
 }
 
@@ -163,8 +202,17 @@ setopt hist_verify
 # completion using arrow keys (based on history)
 bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+if [[ "$PLATFORM" == "Darwin" ]]; then
+    source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+    source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+else
+    if [ -f "$HOME/.linuxbrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+        source "$HOME/.linuxbrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+    fi
+    if [ -f "$HOME/.linuxbrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+        source "$HOME/.linuxbrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    fi
+fi
 
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
@@ -318,24 +366,36 @@ export PATH="$HOME/.local/bin:$PATH"
 
 export PATH="$PATH":"$HOME/.pub-cache/bin"
 
-# magentic-ui --port 8081& > /dev/null 2>&1
-. "$HOME/.deno/env"
-
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
 [[ -f $HOME/.dart-cli-completion/zsh-config.zsh ]] && . $HOME/.dart-cli-completion/zsh-config.zsh || true
 ## [/Completion]
 
-export JAVA_HOME=$(/usr/libexec/java_home -v "17")
+if [[ "$PLATFORM" == "Darwin" ]]; then
+    export JAVA_HOME=$(/usr/libexec/java_home -v "17")
+else
+    if [ -d "/usr/lib/jvm/java-17-openjdk-amd64" ]; then
+        export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+    fi
+fi
 export PATH="$JAVA_HOME/bin:$PATH"
-export ANDROID_SDK_ROOT="$HOME/Library/Android/sdk"
+
+if [[ "$PLATFORM" == "Darwin" ]]; then
+    export ANDROID_SDK_ROOT="$HOME/Library/Android/sdk"
+else
+    export ANDROID_SDK_ROOT="$HOME/Android/Sdk"
+fi
 #export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
 export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/emulator:$PATH"
 
 
 # Call a command with "x command" to get timing and sound
 x() {
-  local sound="/System/Library/Sounds/Glass.aiff"
+  if [[ "$PLATFORM" == "Darwin" ]]; then
+    local sound="/System/Library/Sounds/Glass.aiff"
+  else
+    local sound=""
+  fi
 
   if (( $# == 0 )); then
     print -P "%F{red}Usage:%f x <command ...>"
@@ -371,7 +431,9 @@ x() {
   (( exit_code == 0 )) && status_color="green"
 
   # Play completion sound (foreground, but silent)
-  afplay "$sound" >/dev/null 2>&1
+  if [[ "$PLATFORM" == "Darwin" ]] && [ -n "$sound" ]; then
+    afplay "$sound" >/dev/null 2>&1
+  fi
 
   echo
   print -P "%F{cyan}[END   %F{yellow}$end_human%F{cyan}]%f"
@@ -400,18 +462,24 @@ eval "$(mise activate zsh)"
 
 
 # Caffeinate aliases - keep Mac awake
-alias awake='sudo pmset -a disablesleep 1 && echo "☕ Sleep fully disabled (lid-safe)"'
-alias rest='sudo pmset -a disablesleep 0 && echo "😴 Sleep re-enabled"'
+if [[ "$PLATFORM" == "Darwin" ]]; then
+    alias awake='sudo pmset -a disablesleep 1 && echo "☕ Sleep fully disabled (lid-safe)"'
+    alias rest='sudo pmset -a disablesleep 0 && echo "😴 Sleep re-enabled"'
 
 
-# OpenClaw Completion
-source "/Users/alancolver/.openclaw/completions/openclaw.zsh"
+    # OpenClaw Completion
+    source "/Users/alancolver/.openclaw/completions/openclaw.zsh"
 
-# OpenClaw TUI aliases
-alias claw='openclaw tui'
-alias claw-realestate='openclaw tui --session agent:realestate:main'
-alias claw-bounty='openclaw tui --session agent:bounty-ninja:main'
-alias claw-redshift='openclaw tui --session agent:redshift:main'
-alias claw-bento='openclaw tui --session agent:bento:main'
+    # OpenClaw TUI aliases
+    alias claw='openclaw tui'
+    alias claw-realestate='openclaw tui --session agent:realestate:main'
+    alias claw-bounty='openclaw tui --session agent:bounty-ninja:main'
+    alias claw-redshift='openclaw tui --session agent:redshift:main'
+    alias claw-bento='openclaw tui --session agent:bento:main'
+else
+    # Linux alternatives for sleep (may require sudo)
+    alias awake='echo "Use: sudo systemctl suspend" to sleep; sudo -v; echo "☕ Sleep disabled"'
+    alias rest='echo "😴 Sleep re-enabled"'
+fi
 
-if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+if [[ "$PLATFORM" == "Darwin" ]] && command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
