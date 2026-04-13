@@ -51,6 +51,15 @@ for dir in "${CONFIG_DIRS[@]}"; do
 done
 
 echo ""
+echo "=== Building bat theme cache ==="
+if command -v bat &> /dev/null; then
+    bat cache --build
+    echo "  bat theme cache built."
+else
+    echo "  bat not found, skipping cache build (will be built after brew install)"
+fi
+
+echo ""
 echo "=== Setting up OpenCode config ==="
 if [ -d "$HOME/.config/opencode" ]; then
     if [ -L "$HOME/.config/opencode" ]; then

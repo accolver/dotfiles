@@ -1,3 +1,8 @@
+# Set up Homebrew environment early so all brew-installed tools are available
+if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
 # Detect platform
 case "$(uname -s)" in
     Linux*)     PLATFORM=linux ;;
@@ -18,6 +23,15 @@ export EDITOR=nvim
 if [[ -f "$HOME/.zshrc.local" ]]; then
     source "$HOME/.zshrc.local"
 fi
+
+# Ghostty over SSH can advertise TERM=xterm-ghostty, but this host may not
+# have that terminfo entry. Fall back to a widely-supported terminal so
+# backspace and redraw behave correctly.
+if [[ -n "$SSH_TTY" && "$TERM" == "xterm-ghostty" ]]; then
+  export TERM=xterm-256color
+fi
+
+alias ssh='TERM=xterm-256color ssh'
 
 alias codex="open-codex"
 
@@ -93,14 +107,13 @@ if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/google-cloud-sdk/
 
 # The next line enables shell command completion for gcloud.
 if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-cloud-sdk/completion.zsh.inc"; fi
-eval "$(fzf --zsh)"
 
-autoload -U +X bashcompinit && bashcompinit
-if [[ "$PLATFORM" == "Darwin" ]]; then
-    complete -o nospace -C /opt/homebrew/bin/terragrunt terragrunt
-elif command -v terragrunt &>/dev/null; then
-    complete -o nospace -C $(which terragrunt) terragrunt
-fi
+# autoload -U +X bashcompinit && bashcompinit
+# if [[ "$PLATFORM" == "Darwin" ]]; then
+#     complete -o nospace -C /opt/homebrew/bin/terragrunt terragrunt
+# elif command -v terragrunt &>/dev/null; then
+#     complete -o nospace -C $(which terragrunt) terragrunt
+# fi
 
 export GPG_TTY=$(tty)
 
@@ -118,8 +131,28 @@ alias mux="tmuxinator"
 alias lg="lazygit"
 alias claude-yolo="claude --dangerously-skip-permissions"
 alias oc="opencode"
+
+alias ts-up='tailscale set \
+  --exit-node="us-slc-wg-302.mullvad.ts.net" \
+  --exit-node-allow-lan-access=true \
+  --accept-dns=true \
+  --accept-routes=false'
+
+alias ts-down='tailscale set --exit-node='
+
+  # --exit-node="us-den-wg-101.mullvad.ts.net" \
+
 ocs() { opencode serve --port ${1:-59121}; }
 oca() { opencode attach http://127.0.0.1:${1:-59121}; }
+
+# gs() {
+#   gamescope -f -W 3440 -H 1440 -r 174 -- "$@"
+# }
+
+gs() {
+  __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia \
+  gamescope -f -W 3440 -H 1440 -r 174 -S fit -- "$@"
+}
 
 if [[ "$PLATFORM" == "Darwin" ]]; then
     alias tga="time terragrunt apply; afplay /System/Library/Sounds/Glass.aiff; date"
@@ -483,3 +516,5 @@ else
 fi
 
 if [[ "$PLATFORM" == "Darwin" ]] && command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+
+

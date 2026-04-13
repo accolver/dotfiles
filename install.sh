@@ -81,6 +81,20 @@ for dir in "${CONFIG_DIRS[@]}"; do
     fi
 done
 
+# Build bat theme cache so custom themes are available
+echo ""
+echo "Building bat theme cache..."
+if command -v bat &> /dev/null; then
+    if [ "$DRY_RUN" = true ]; then
+        echo "  [DRY RUN] Would run: bat cache --build"
+    else
+        bat cache --build
+        echo "  bat theme cache built."
+    fi
+else
+    echo "  bat not found, skipping cache build (install bat first, then run: bat cache --build)"
+fi
+
 # OpenCode needs special handling (copy + substitute secrets)
 echo ""
 echo "Setting up OpenCode config..."
