@@ -35,7 +35,7 @@ backup_and_link() {
     local source="$1"
     local target="$2"
     
-    if [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
+    if [ -L "$target" ] && [ "$(readlink -f "$target")" = "$source" ]; then
         echo "  $target already linked"
         return 0
     fi
@@ -55,6 +55,34 @@ backup_and_link() {
     else
         echo "  Linking $source -> $target"
         ln -sf "$source" "$target"
+    fi
+}
+
+setup_opencode_config() {
+    local source="$DOTFILES_DIR/config/opencode"
+    local target="$HOME/.config/opencode"
+
+    if [ -L "$target" ] && [ "$(readlink -f "$target")" = "$source" ]; then
+        echo "  $target already linked"
+        return 0
+    fi
+
+    if [ -d "$target" ] && diff -qr "$source" "$target" >/dev/null 2>&1; then
+        echo "  $target already up to date"
+        return 0
+    fi
+
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        echo "  $target already exists; leaving it unchanged to avoid overwriting local secrets"
+        echo "  Remove it manually if you want a fresh copy from $source"
+        return 0
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        echo "  [DRY RUN] Would copy $source to $target"
+    else
+        echo "  Copying $source -> $target"
+        cp -R "$source" "$target"
     fi
 }
 
@@ -148,20 +176,7 @@ fi
 # OpenCode needs special handling (copy + substitute secrets)
 echo ""
 echo "Setting up OpenCode config..."
-if [ -d "$HOME/.config/opencode" ]; then
-    if [ "$DRY_RUN" = true ]; then
-        echo "  [DRY RUN] Would backup $HOME/.config/opencode to $BACKUP_DIR/"
-    else
-        echo "  Backing up existing opencode config"
-        mkdir -p "$BACKUP_DIR"
-        mv "$HOME/.config/opencode" "$BACKUP_DIR/"
-    fi
-fi
-if [ "$DRY_RUN" = true ]; then
-    echo "  [DRY RUN] Would copy $DOTFILES_DIR/config/opencode to $HOME/.config/opencode"
-else
-    cp -R "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
-fi
+setup_opencode_config
 
 # 4. Setup Secrets File
 echo ""

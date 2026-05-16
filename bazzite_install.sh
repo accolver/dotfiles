@@ -8,15 +8,16 @@ backup_and_link() {
     local source="$1"
     local target="$2"
 
-    if [ -e "$target" ] || [ -L "$target" ]; then
-        if [ -L "$target" ]; then
-            local current_target
-            current_target="$(readlink -f "$target")"
-            if [ "$current_target" = "$source" ]; then
-                echo "  Already linked: $source -> $target"
-                return 0
-            fi
+    if [ -L "$target" ]; then
+        local current_target
+        current_target="$(readlink -f "$target")"
+        if [ "$current_target" = "$source" ]; then
+            echo "  Already linked: $source -> $target"
+            return 0
         fi
+    fi
+
+    if [ -e "$target" ] || [ -L "$target" ]; then
         echo "  Backing up existing $target"
         mkdir -p "$BACKUP_DIR"
         mv "$target" "$BACKUP_DIR/"
@@ -24,6 +25,98 @@ backup_and_link() {
 
     echo "  Linking $source -> $target"
     ln -sfn "$source" "$target"
+}
+
+ensure_ssh_config_block() {
+    local config="$HOME/.ssh/config"
+    local tmp
+    tmp="$(mktemp)"
+
+    touch "$config"
+    chmod 600 "$config"
+
+    local old_config
+    old_config="$(mktemp)"
+    cat > "$old_config" <<'EOF'
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_github
+  IdentitiesOnly yes
+EOF
+    if cmp -s "$config" "$old_config"; then
+        : > "$config"
+    fi
+    rm -f "$old_config"
+
+    awk '
+        /# BEGIN dotfiles github.com/ { skip=1; next }
+        /# END dotfiles github.com/ { skip=0; next }
+        !skip { print }
+    ' "$config" > "$tmp"
+
+    cat >> "$tmp" <<'EOF'
+# BEGIN dotfiles github.com
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_github
+  IdentitiesOnly yes
+# END dotfiles github.com
+EOF
+
+    if cmp -s "$tmp" "$config"; then
+        echo "  SSH config already contains managed GitHub block"
+        rm -f "$tmp"
+    else
+        mv "$tmp" "$config"
+        chmod 600 "$config"
+        echo "  Updated SSH config managed GitHub block"
+    fi
+}
+
+copy_dir_if_changed() {
+    local source="$1"
+    local target="$2"
+
+    if [ -L "$target" ]; then
+        local current_target
+        current_target="$(readlink -f "$target")"
+        if [ "$current_target" = "$source" ]; then
+            echo "  Already linked: $source -> $target"
+            return 0
+        fi
+    fi
+
+    if [ -d "$target" ] && diff -qr "$source" "$target" >/dev/null 2>&1; then
+        echo "  $target already up to date"
+        return 0
+    fi
+
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        echo "  $target already exists and differs; leaving it unchanged"
+        echo "  Remove it manually if you want a fresh copy from $source"
+        return 0
+    fi
+
+    echo "  Copying $source -> $target"
+    cp -R "$source" "$target"
+}
+
+install_nerd_font() {
+    local font="$1"
+    local marker="$HOME/.local/share/fonts/.dotfiles-${font}-installed"
+
+    if [ -f "$marker" ]; then
+        echo "  $font Nerd Font already installed"
+        return 0
+    fi
+
+    curl -fLo "nerd-fonts-${font}.zip" \
+        "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
+    unzip -o "nerd-fonts-${font}.zip" -d "$HOME/.local/share/fonts"
+    rm -f "nerd-fonts-${font}.zip"
+    touch "$marker"
 }
 
 need_cmd() {
@@ -48,14 +141,7 @@ if [ -f "$HOME/.ssh/id_github.pub" ]; then
     chmod 644 "$HOME/.ssh/id_github.pub"
 fi
 
-cat > "$HOME/.ssh/config" <<'EOF'
-Host github.com
-  HostName github.com
-  User git
-  IdentityFile ~/.ssh/id_github
-  IdentitiesOnly yes
-EOF
-chmod 600 "$HOME/.ssh/config"
+ensure_ssh_config_block
 
 if need_cmd ssh-add && [ -f "$HOME/.ssh/id_github" ]; then
     if ! ssh-add -l >/dev/null 2>&1; then
@@ -65,8 +151,18 @@ if need_cmd ssh-add && [ -f "$HOME/.ssh/id_github" ]; then
 fi
 
 echo ""
-echo "=== Setting up .zshrc ==="
+echo "=== Setting up home-directory dotfiles ==="
 backup_and_link "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
+backup_and_link "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
+
+echo ""
+echo "=== Setting up tmuxinator configs ==="
+mkdir -p "$HOME/.tmuxinator"
+for file in "$DOTFILES_DIR"/.tmuxinator/*.yml; do
+    if [ -f "$file" ]; then
+        backup_and_link "$file" "$HOME/.tmuxinator/$(basename "$file")"
+    fi
+done
 
 echo ""
 echo "=== Setting up .config directories ==="
@@ -101,16 +197,7 @@ fi
 
 echo ""
 echo "=== Setting up OpenCode config ==="
-if [ -d "$HOME/.config/opencode" ] || [ -L "$HOME/.config/opencode" ]; then
-    if [ -L "$HOME/.config/opencode" ]; then
-        rm "$HOME/.config/opencode"
-    else
-        echo "  Backing up existing opencode config"
-        mkdir -p "$BACKUP_DIR"
-        mv "$HOME/.config/opencode" "$BACKUP_DIR/"
-    fi
-fi
-cp -R "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
+copy_dir_if_changed "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
 
 echo ""
 echo "=== Setting up secrets file ==="
@@ -127,10 +214,7 @@ echo "=== Installing nerd fonts ==="
 mkdir -p "$HOME/.local/share/fonts"
 pushd /tmp >/dev/null
 for font in Hack Meslo NerdFontsSymbolsOnly; do
-  curl -fLo "nerd-fonts-${font}.zip" \
-    "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
-  unzip -o "nerd-fonts-${font}.zip" -d "$HOME/.local/share/fonts"
-  rm -f "nerd-fonts-${font}.zip"
+  install_nerd_font "$font"
 done
 rm -rf /home/linuxbrew/.linuxbrew/var/cache/fontconfig 2>/dev/null || true
 fc-cache -f -v || true

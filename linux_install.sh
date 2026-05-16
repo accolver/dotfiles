@@ -8,14 +8,15 @@ backup_and_link() {
     local source="$1"
     local target="$2"
     
-    if [ -e "$target" ] || [ -L "$target" ]; then
-        if [ -L "$target" ]; then
-            current_target=$(readlink -f "$target")
-            if [ "$current_target" = "$source" ]; then
-                echo "  Already linked: $source -> $target"
-                return 0
-            fi
+    if [ -L "$target" ]; then
+        current_target=$(readlink -f "$target")
+        if [ "$current_target" = "$source" ]; then
+            echo "  Already linked: $source -> $target"
+            return 0
         fi
+    fi
+
+    if [ -e "$target" ] || [ -L "$target" ]; then
         echo "  Backing up existing $target"
         mkdir -p "$BACKUP_DIR"
         mv "$target" "$BACKUP_DIR/"
@@ -25,8 +26,60 @@ backup_and_link() {
     ln -sf "$source" "$target"
 }
 
-echo "=== Setting up .zshrc ==="
+copy_dir_if_changed() {
+    local source="$1"
+    local target="$2"
+
+    if [ -L "$target" ]; then
+        current_target=$(readlink -f "$target")
+        if [ "$current_target" = "$source" ]; then
+            echo "  Already linked: $source -> $target"
+            return 0
+        fi
+    fi
+
+    if [ -d "$target" ] && diff -qr "$source" "$target" >/dev/null 2>&1; then
+        echo "  $target already up to date"
+        return 0
+    fi
+
+    if [ -e "$target" ] || [ -L "$target" ]; then
+        echo "  $target already exists and differs; leaving it unchanged"
+        echo "  Remove it manually if you want a fresh copy from $source"
+        return 0
+    fi
+
+    echo "  Copying $source -> $target"
+    cp -R "$source" "$target"
+}
+
+install_nerd_font() {
+    local font="$1"
+    local marker="$HOME/.local/share/fonts/.dotfiles-${font}-installed"
+
+    if [ -f "$marker" ]; then
+        echo "  $font Nerd Font already installed"
+        return 0
+    fi
+
+    curl -fLo "nerd-fonts-${font}.zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
+    unzip -o "nerd-fonts-${font}.zip" -d "$HOME/.local/share/fonts"
+    rm -f "nerd-fonts-${font}.zip"
+    touch "$marker"
+}
+
+echo "=== Setting up home-directory dotfiles ==="
 backup_and_link "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
+backup_and_link "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
+
+echo ""
+echo "=== Setting up tmuxinator configs ==="
+mkdir -p "$HOME/.tmuxinator"
+for file in "$DOTFILES_DIR"/.tmuxinator/*.yml; do
+    if [ -f "$file" ]; then
+        backup_and_link "$file" "$HOME/.tmuxinator/$(basename "$file")"
+    fi
+done
 
 echo ""
 echo "=== Setting up .config directories ==="
@@ -82,16 +135,7 @@ fi
 
 echo ""
 echo "=== Setting up OpenCode config ==="
-if [ -d "$HOME/.config/opencode" ]; then
-    if [ -L "$HOME/.config/opencode" ]; then
-        rm "$HOME/.config/opencode"
-    else
-        echo "  Backing up existing opencode config"
-        mkdir -p "$BACKUP_DIR"
-        mv "$HOME/.config/opencode" "$BACKUP_DIR/"
-    fi
-fi
-cp -R "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
+copy_dir_if_changed "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
 
 echo ""
 echo "=== Setting up secrets file ==="
@@ -105,12 +149,10 @@ fi
 
 echo ""
 echo "=== Installing nerd fonts ==="
-mkdir -p ~/.local/share/fonts
+mkdir -p "$HOME/.local/share/fonts"
 cd /tmp
 for font in Hack Meslo NerdFontsSymbolsOnly; do
-  curl -fLo "nerd-fonts-${font}.zip" "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${font}.zip"
-  unzip -o "nerd-fonts-${font}.zip" -d ~/.local/share/fonts
-  rm "nerd-fonts-${font}.zip"
+  install_nerd_font "$font"
 done
 rm -rf /home/linuxbrew/.linuxbrew/var/cache/fontconfig 2>/dev/null || true
 fc-cache -f -v || true
@@ -122,9 +164,15 @@ sudo apt install -y playerctl steam-devices
 
 echo "=== Installing gcloud CLI ==="
 if ! command -v gcloud &> /dev/null; then
-  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/google-cloud-sdk.gpg
-  echo "deb [signed-by=/usr/share/keyrings/google-cloud-sdk.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+  if [ ! -f /usr/share/keyrings/google-cloud-sdk.gpg ]; then
+    curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/google-cloud-sdk.gpg
+  fi
+  if [ ! -f /etc/apt/sources.list.d/google-cloud-sdk.list ]; then
+    echo "deb [signed-by=/usr/share/keyrings/google-cloud-sdk.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+  fi
   sudo apt update && sudo apt install -y google-cloud-cli
+else
+  echo "  gcloud already installed"
 fi
 
 echo "=== Running brew bundle ==="
