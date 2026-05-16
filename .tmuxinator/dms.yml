@@ -1,0 +1,23 @@
+name: dms
+root: ~/dev/dead-mans-switch
+
+windows:
+  - keyfate:
+      layout: "07df,280x71,0,0{134x71,0,0,1,145x71,135,0,3}"
+      panes:
+        - cd frontend
+        - clear
+
+  - editor:
+      - nvim .
+
+  - deploy:
+      - cd infrastructure/terragrunt/dev
+  - db:
+      layout: "cc7a,277x71,0,0{138x71,0,0,21,138x71,139,0,23}"
+      panes:
+        - - echo "Starting Proxy"
+          - cloud-sql-proxy --port=54321 keyfate-dev:us-central1:keyfate-postgres-staging
+        - - cd frontend
+          - sleep 2
+          - npm run db:studio -- --config=drizzle-staging.config.ts

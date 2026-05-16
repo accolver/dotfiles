@@ -35,6 +35,11 @@ backup_and_link() {
     local source="$1"
     local target="$2"
     
+    if [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
+        echo "  $target already linked"
+        return 0
+    fi
+
     if [ -e "$target" ] || [ -L "$target" ]; then
         if [ "$DRY_RUN" = true ]; then
             echo "  [DRY RUN] Would backup $target to $BACKUP_DIR/"
@@ -53,11 +58,27 @@ backup_and_link() {
     fi
 }
 
-# 1. Create Symlinks for .zshrc
-echo "Setting up .zshrc..."
+# 1. Create Symlinks for home-directory dotfiles
+echo "Setting up home-directory dotfiles..."
 backup_and_link "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
+backup_and_link "$DOTFILES_DIR/.tmux.conf" "$HOME/.tmux.conf"
 
-# 2. Setup .config directory symlinks
+# 2. Setup tmuxinator project configs
+echo ""
+echo "Setting up tmuxinator configs..."
+if [ "$DRY_RUN" = true ]; then
+    echo "  [DRY RUN] Would create $HOME/.tmuxinator"
+else
+    mkdir -p "$HOME/.tmuxinator"
+fi
+
+for file in "$DOTFILES_DIR"/.tmuxinator/*.yml; do
+    if [ -f "$file" ]; then
+        backup_and_link "$file" "$HOME/.tmuxinator/$(basename "$file")"
+    fi
+done
+
+# 3. Setup .config directory symlinks
 echo ""
 echo "Setting up .config directories..."
 mkdir -p "$HOME/.config"
@@ -113,7 +134,7 @@ else
     cp -R "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
 fi
 
-# 3. Setup Secrets File
+# 4. Setup Secrets File
 echo ""
 echo "Setting up secrets file..."
 if [ ! -f "$HOME/.zshrc.local" ]; then
@@ -130,7 +151,7 @@ else
     echo "  .zshrc.local already exists."
 fi
 
-# 4. Inject secrets into config files
+# 5. Inject secrets into config files
 inject_secrets() {
     echo ""
     echo "Injecting secrets into config files..."
@@ -173,7 +194,7 @@ if [ "$DRY_RUN" = true ]; then
     echo ""
     echo "[DRY RUN] Would prompt to install Brewfile dependencies"
 else
-    # 5. Install Homebrew Packages
+    # 6. Install Homebrew Packages
     echo ""
     echo "Checking Homebrew..."
     if command -v brew &> /dev/null; then

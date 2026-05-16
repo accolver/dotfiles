@@ -9,8 +9,8 @@ than blindly copying. Proceed at your own risk!
 
 - **Shell:** Zsh with oh-my-zsh, starship prompt, and various plugins
 - **Editor:** Neovim (LazyVim-based config)
-- **Terminal:** Ghostty
-- **Tools:** fzf, eza, bat, zoxide, lazygit, and more
+- **Terminal:** Ghostty and tmux
+- **Tools:** fzf, eza, bat, zoxide, tmuxinator, lazygit, and more
 
 ## Quick Start
 
@@ -31,8 +31,9 @@ The install script will:
 
 1. Backup any existing configs to `~/.dotfiles-backup/`
 2. Create symlinks from the repo to your home directory
-3. Create a `.zshrc.local` template for your secrets
-4. Optionally install Homebrew packages
+3. Symlink tmux and tmuxinator project configs
+4. Create a `.zshrc.local` template for your secrets
+5. Optionally install Homebrew packages
 
 Use `--dry-run` to see what would happen without making any changes.
 
@@ -43,6 +44,8 @@ dotfiles/
 ├── .gitignore
 ├── .zshrc                    # Main shell config
 ├── .zshrc.local.template     # Template for secrets/API keys
+├── .tmux.conf                # Tmux config
+├── .tmuxinator/              # Tmuxinator project configs
 ├── Brewfile                  # Homebrew packages
 ├── install.sh                # Setup script
 ├── README.md
@@ -89,6 +92,8 @@ brew bundle install --file=Brewfile
 ### Terminal & Shell
 
 - [Ghostty](https://ghostty.org/) - GPU-accelerated terminal
+- [tmux](https://github.com/tmux/tmux/wiki) - Terminal multiplexer
+- [tmuxinator](https://github.com/tmuxinator/tmuxinator) - Tmux session manager
 - [Starship](https://starship.rs/) - Cross-shell prompt
 - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
 - [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)

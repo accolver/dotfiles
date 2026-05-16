@@ -1,0 +1,17 @@
+name: annuity
+root: ~/dev/annuity/cloud-resources
+
+windows:
+  - annuity.com:
+      layout: "07df,280x71,0,0{134x71,0,0,1,145x71,135,0,3}"
+      panes:
+        - - cd ~/dev/annuity/cloud-resources
+          - clear
+        - - cd ~/dev/annuity/cloud-resources
+          - lg
+  - editor:
+      - cd ~/dev/annuity/cloud-resources
+      - nvim .
+  - deploy:
+      - cd ~/dev/annuity/cloud-resources/infrastructure/terragrunt/us-central1/dev/config
+      - clear

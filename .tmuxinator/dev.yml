@@ -1,0 +1,19 @@
+name: <%= File.basename(ENV.fetch("PWD", Dir.pwd)).gsub(/[^A-Za-z0-9_.-]/, "-") %>
+root: <%= ENV.fetch("PWD", ".") %>
+
+windows:
+  - <%= File.basename(ENV.fetch("PWD", Dir.pwd)).gsub(/[^A-Za-z0-9_.-]/, "-") %>:
+      layout: 6d97,224x63,0,0{89x63,0,0,138,134x63,90,0[134x32,90,0,142,134x30,90,33,143]}
+      panes:
+        -
+        - pi
+        - pi
+  - editor:
+      - nvim .
+  - other:
+      layout: tiled
+      panes:
+        - clear
+        - clear
+        - clear
+        - clear
