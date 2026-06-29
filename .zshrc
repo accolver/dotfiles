@@ -515,4 +515,248 @@ fi
 
 if [[ "$PLATFORM" == "Darwin" ]] && command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
 
+# Herdr shortcuts — tmux-like muscle memory for the AI-agent workspace manager.
+# Sessions are long-lived Herdr servers; workspaces are project/group rows; tabs are tmux-window-like.
+alias h='herdr'                         # launch/attach default Herdr session
+alias hd='herdr'                        # mnemonic: Herdr default
+alias hst='herdr status'                # local client/server status
+alias hu='herdr update --handoff'       # update with live handoff when possible
+alias hrl='herdr server reload-config'  # reload ~/.config/herdr/config.toml
+alias hstop='herdr server stop'         # stop the running default server
+
+# Herdr session/workspace aliases. Deliberately avoid tl/ts/ta/tk so tmux/tmuxinator aliases stay free.
+alias hl='herdr session list'
+# `hs name` = Herdr space: create a new workspace in the current/main session.
+hs() {
+  emulate -L zsh
+
+  command -v herdr >/dev/null 2>&1 || { echo "hs: herdr is not in PATH" >&2; return 127; }
+
+  local name="${*:-${PWD:t}}"
+  [[ -n "$name" ]] || name="workspace"
+
+  local attach_after=0 session="${HERDR_SESSION:-main}"
+  if [[ -z "${HERDR_SOCKET_PATH:-}" ]]; then
+    local HERDR_SESSION="$session"
+    export HERDR_SESSION
+    attach_after=1
+
+    if ! herdr workspace list >/dev/null 2>&1; then
+      echo "hs: starting Herdr session '$session'..."
+      herdr --session "$session" server >/tmp/hs-herdr-server.log 2>&1 &!
+
+      local attempt
+      for attempt in {1..50}; do
+        herdr workspace list >/dev/null 2>&1 && break
+        sleep 0.1
+      done
+
+      if ! herdr workspace list >/dev/null 2>&1; then
+        echo "hs: failed to start Herdr session '$session'; see /tmp/hs-herdr-server.log" >&2
+        return 1
+      fi
+    fi
+  fi
+
+  local created workspace_id
+  created=$(herdr workspace create --cwd "$PWD" --label "$name" --focus) || return
+  if command -v jq >/dev/null 2>&1; then
+    workspace_id=$(jq -r '.result.workspace.workspace_id // empty' <<< "$created" 2>/dev/null)
+  fi
+  echo "Created Herdr workspace '$name'${workspace_id:+ ($workspace_id)}"
+
+  if (( attach_after )); then
+    herdr session attach "$session"
+  fi
+}
+ha() { herdr session attach "${1:-main}"; }
+# `hk name` = Herdr kill: stop and delete the named session snapshot.
+hk() {
+  emulate -L zsh
+
+  local herdr_bin
+  herdr_bin=$(command -v herdr) || { echo "hk: herdr is not in PATH" >&2; return 127; }
+
+  local session="${1:-${HERDR_SESSION:-main}}"
+  [[ -n "$session" ]] || { echo "hk: session name required" >&2; return 2; }
+  if [[ "$session" == "default" ]]; then
+    echo "hk: Herdr cannot delete the default session; use a named session." >&2
+    return 2
+  fi
+
+  local safe_session="${session//[^A-Za-z0-9_.-]/-}"
+  local log="/tmp/hk-herdr-${safe_session}.log"
+
+  # If we are killing the session that owns this pane, run the stop/delete from
+  # a detached process so the cleanup survives this pane being terminated.
+  if [[ -n "${HERDR_SOCKET_PATH:-}" && "${session}" == "${HERDR_SESSION:-main}" ]]; then
+    nohup /bin/sh -c '
+      session="$1"
+      herdr_bin="$2"
+      "$herdr_bin" session stop "$session" --json >/dev/null 2>&1 || true
+      for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+        "$herdr_bin" session delete "$session" --json >/dev/null 2>&1 && exit 0
+        sleep 0.25
+      done
+      exit 1
+    ' hk-herdr-kill "$session" "$herdr_bin" >"$log" 2>&1 &!
+    echo "Killing Herdr session '$session' (cleanup log: $log)"
+    return 0
+  fi
+
+  herdr session stop "$session" --json >/dev/null 2>&1 || true
+  local attempt
+  for attempt in {1..20}; do
+    if herdr session delete "$session" --json >/dev/null 2>"$log"; then
+      echo "Killed Herdr session '$session'"
+      return 0
+    fi
+    sleep 0.25
+  done
+  echo "hk: failed to delete Herdr session '$session'; see $log" >&2
+  return 1
+}
+hdlt() { hk "$1"; }
+
+# Remote attach: use SSH config names, e.g. `hr workbox`.
+hr() { herdr --remote "$@"; }
+hrs() { herdr --remote "$1" --remote-keybindings server; }
+
+# Workspace / tab / pane helpers.
+alias hwl='herdr workspace list'
+hw() { herdr workspace create --cwd "${1:-$PWD}" --label "${2:-${PWD:t}}" --focus; }
+alias htl='herdr tab list'
+ht() { herdr tab create --cwd "${1:-$PWD}" --label "${2:-${PWD:t}}" --focus; }
+alias hpl='herdr pane list'
+alias hpc='herdr pane current'
+
+# Git worktrees.
+alias hwtl='herdr worktree list --cwd .'
+hwt() { herdr worktree create --cwd . --branch "$1" --focus; }
+hwto() { herdr worktree open --cwd . --branch "$1" --focus; }
+
+# Agent helpers. Start agents inside Herdr panes so integrations/session restore work.
+alias hal='herdr agent list'
+hpi() { herdr agent start pi --cwd "${1:-$PWD}" -- pi; }
+hoc() { herdr agent start opencode --cwd "${1:-$PWD}" -- opencode; }
+haf() { herdr agent focus "$1"; }
+har() { herdr agent read "$1" --lines "${2:-80}"; }
+
+# hux = Herdr tmuxinator-ish layouts. `hux dev` mirrors ~/.tmuxinator/dev.yml.
+__hux_dev() {
+  emulate -L zsh
+
+  command -v herdr >/dev/null 2>&1 || { echo "hux dev: herdr is not in PATH" >&2; return 127; }
+  command -v jq >/dev/null 2>&1 || { echo "hux dev: jq is required to parse herdr CLI JSON" >&2; return 127; }
+  command -v pi >/dev/null 2>&1 || { echo "hux dev: pi is not in PATH" >&2; return 127; }
+  command -v nvim >/dev/null 2>&1 || { echo "hux dev: nvim is not in PATH" >&2; return 127; }
+
+  local no_attach=0
+  if [[ "${1:-}" == "--no-attach" ]]; then
+    no_attach=1
+    shift
+  fi
+
+  # Herdr CLI commands need a target socket/session. Inside Herdr, HERDR_SOCKET_PATH
+  # already points at the active session. Outside Herdr, default to your main session
+  # so `hux dev` works like `mux dev` from a normal terminal.
+  local hux_attach_after=0 hux_session="${HERDR_SESSION:-main}"
+  if [[ -z "${HERDR_SOCKET_PATH:-}" ]]; then
+    local HERDR_SESSION="$hux_session"
+    export HERDR_SESSION
+    hux_attach_after=1
+
+    if ! herdr workspace list >/dev/null 2>&1; then
+      echo "hux dev: starting Herdr session '$hux_session'..."
+      herdr --session "$hux_session" server >/tmp/hux-herdr-server.log 2>&1 &!
+
+      local attempt
+      for attempt in {1..50}; do
+        herdr workspace list >/dev/null 2>&1 && break
+        sleep 0.1
+      done
+
+      if ! herdr workspace list >/dev/null 2>&1; then
+        echo "hux dev: failed to start Herdr session '$hux_session'; see /tmp/hux-herdr-server.log" >&2
+        return 1
+      fi
+    fi
+  fi
+
+  local root="${1:-$PWD}"
+  [[ -d "$root" ]] || { echo "hux dev: not a directory: $root" >&2; return 1; }
+  root="${root:A}"
+
+  local name="${root:t}"
+  [[ -n "$name" ]] || name="root"
+  name="${name//[^A-Za-z0-9_.-]/-}"
+
+  local created workspace_id dev_tab_id shell_pane_id
+  created=$(herdr workspace create --cwd "$root" --label "$name" --focus) || return
+  workspace_id=$(jq -r '.result.workspace.workspace_id' <<< "$created") || return
+  dev_tab_id=$(jq -r '.result.tab.tab_id' <<< "$created") || return
+  shell_pane_id=$(jq -r '.result.root_pane.pane_id' <<< "$created") || return
+  herdr tab rename "$dev_tab_id" "$name" >/dev/null || return
+
+  # First tab: left shell plus two Pi panes stacked on the right.
+  local split top_pi_pane bottom_pi_pane
+  split=$(herdr pane split "$shell_pane_id" --direction right --ratio 0.40 --cwd "$root" --no-focus) || return
+  top_pi_pane=$(jq -r '.result.pane.pane_id' <<< "$split") || return
+  split=$(herdr pane split "$top_pi_pane" --direction down --ratio 0.52 --cwd "$root" --no-focus) || return
+  bottom_pi_pane=$(jq -r '.result.pane.pane_id' <<< "$split") || return
+  herdr pane run "$top_pi_pane" "pi" || return
+  herdr pane run "$bottom_pi_pane" "pi" || return
+
+  # Editor tab.
+  local editor_created editor_pane_id
+  editor_created=$(herdr tab create --workspace "$workspace_id" --cwd "$root" --label editor --no-focus) || return
+  editor_pane_id=$(jq -r '.result.root_pane.pane_id' <<< "$editor_created") || return
+  herdr pane run "$editor_pane_id" "nvim ." || return
+
+  # Other tab: 2x2 shell grid, matching tmuxinator's four clear panes.
+  local other_created other_root_pane right_pane left_bottom_pane right_bottom_pane
+  other_created=$(herdr tab create --workspace "$workspace_id" --cwd "$root" --label other --no-focus) || return
+  other_root_pane=$(jq -r '.result.root_pane.pane_id' <<< "$other_created") || return
+  split=$(herdr pane split "$other_root_pane" --direction right --ratio 0.50 --cwd "$root" --no-focus) || return
+  right_pane=$(jq -r '.result.pane.pane_id' <<< "$split") || return
+  split=$(herdr pane split "$other_root_pane" --direction down --ratio 0.50 --cwd "$root" --no-focus) || return
+  left_bottom_pane=$(jq -r '.result.pane.pane_id' <<< "$split") || return
+  split=$(herdr pane split "$right_pane" --direction down --ratio 0.50 --cwd "$root" --no-focus) || return
+  right_bottom_pane=$(jq -r '.result.pane.pane_id' <<< "$split") || return
+  herdr pane run "$other_root_pane" clear || return
+  herdr pane run "$right_pane" clear || return
+  herdr pane run "$left_bottom_pane" clear || return
+  herdr pane run "$right_bottom_pane" clear || return
+
+  herdr tab focus "$dev_tab_id" >/dev/null || return
+  herdr workspace focus "$workspace_id" >/dev/null || return
+  echo "Created Herdr dev workspace '$name' ($workspace_id) at $root"
+
+  if (( hux_attach_after && ! no_attach )); then
+    echo "hux dev: attaching to Herdr session '$hux_session'..."
+    herdr session attach "$hux_session"
+  fi
+}
+
+hux() {
+  emulate -L zsh
+
+  case "${1:-}" in
+    dev)
+      shift
+      __hux_dev "$@"
+      ;;
+    ""|-h|--help|help)
+      echo "Usage: hux dev [--no-attach] [directory]"
+      echo "Creates a Herdr workspace like ~/.tmuxinator/dev.yml: dev tab, editor tab, other tab."
+      echo "Outside Herdr, targets/starts HERDR_SESSION or main and attaches unless --no-attach is set."
+      ;;
+    *)
+      echo "hux: unknown command: $1" >&2
+      echo "Usage: hux dev [--no-attach] [directory]" >&2
+      return 2
+      ;;
+  esac
+}
+
 
