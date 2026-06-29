@@ -53,6 +53,7 @@ dotfiles/
     ├── bat/                  # Bat syntax highlighter themes
     ├── ghostty/              # Ghostty terminal
     ├── git/                  # Git global ignore
+    ├── herdr/                # Herdr agent workspace manager
     ├── ncspot/               # Spotify TUI
     ├── nvim/                 # Neovim config (LazyVim)
     ├── opencode/             # OpenCode AI config & agents
@@ -81,10 +82,10 @@ Packages are managed via Brewfile:
 
 ```bash
 # Export current packages (on existing machine)
-brew bundle dump --force --file=Brewfile
+brew bundle dump --force --no-describe --file Brewfile
 
 # Install packages (on new machine)
-brew bundle install --file=Brewfile
+brew bundle install --file Brewfile
 ```
 
 ## Key Tools
@@ -94,6 +95,7 @@ brew bundle install --file=Brewfile
 - [Ghostty](https://ghostty.org/) - GPU-accelerated terminal
 - [tmux](https://github.com/tmux/tmux/wiki) - Terminal multiplexer
 - [tmuxinator](https://github.com/tmuxinator/tmuxinator) - Tmux session manager
+- [Herdr](https://herdr.dev/) - AI-agent workspace manager
 - [Starship](https://starship.rs/) - Cross-shell prompt
 - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
 - [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)

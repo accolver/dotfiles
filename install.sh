@@ -81,7 +81,11 @@ done
 # 3. Setup .config directory symlinks
 echo ""
 echo "Setting up .config directories..."
-mkdir -p "$HOME/.config"
+if [ "$DRY_RUN" = true ]; then
+    echo "  [DRY RUN] Would create $HOME/.config"
+else
+    mkdir -p "$HOME/.config"
+fi
 
 # Directories to symlink directly
 CONFIG_DIRS=(
@@ -101,6 +105,20 @@ for dir in "${CONFIG_DIRS[@]}"; do
         echo "  Warning: $DOTFILES_DIR/config/$dir not found, skipping"
     fi
 done
+
+# Herdr stores runtime sockets/sessions in ~/.config/herdr, so only symlink the config file.
+echo ""
+echo "Setting up Herdr config..."
+if [ -f "$DOTFILES_DIR/config/herdr/config.toml" ]; then
+    if [ "$DRY_RUN" = true ]; then
+        echo "  [DRY RUN] Would create $HOME/.config/herdr"
+    else
+        mkdir -p "$HOME/.config/herdr"
+    fi
+    backup_and_link "$DOTFILES_DIR/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+else
+    echo "  Warning: $DOTFILES_DIR/config/herdr/config.toml not found, skipping"
+fi
 
 # Build bat theme cache so custom themes are available
 echo ""
@@ -202,7 +220,7 @@ else
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             echo "Installing Brewfile dependencies..."
-            brew bundle install --file="$DOTFILES_DIR/Brewfile"
+            brew bundle install --file "$DOTFILES_DIR/Brewfile"
         else
             echo "Skipping Brewfile installation."
         fi

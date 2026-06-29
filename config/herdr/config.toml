@@ -1,0 +1,190 @@
+# herdr configuration
+# Tuned to mirror ~/.tmux.conf where Herdr has equivalent concepts.
+
+# First-run setup is done; keep startup quiet.
+onboarding = false
+
+[theme]
+# Built-in Tokyo Night theme.
+name = "tokyo-night"
+
+[theme.custom]
+# Keep pane backgrounds transparent/default while using Tokyo Night's palette.
+panel_bg = "reset"
+
+[terminal]
+# Match tmux's practical behavior: inherit shell and start new panes/tabs in the current context.
+default_shell = ""
+shell_mode = "auto"
+new_cwd = "follow"
+
+[update]
+channel = "stable"
+version_check = true
+manifest_check = true
+
+[keys]
+# ~/.tmux.conf uses Ctrl-Space as the prefix.
+prefix = "ctrl+space"
+
+# Prefix-mode basics, kept close to tmux defaults/muscle memory.
+help = "prefix+?"
+settings = "prefix+s"
+detach = ["prefix+q", "prefix+d"]
+reload_config = "prefix+shift+r"
+open_notification_target = ""
+workspace_picker = "prefix+w"
+goto = "prefix+g"
+
+# Workspaces are Herdr's session-ish grouping layer.
+new_workspace = "prefix+shift+n"
+new_worktree = "prefix+shift+g"
+open_worktree = "prefix+alt+o"
+remove_worktree = "prefix+alt+d"
+rename_workspace = "prefix+period"
+close_workspace = "prefix+shift+d"
+previous_workspace = "prefix+i"
+next_workspace = "prefix+o"
+previous_agent = ""
+next_agent = ""
+focus_agent = ""
+remote_image_paste = "ctrl+v"
+
+# Tabs map most closely to tmux windows.
+new_tab = "prefix+c"
+rename_tab = "prefix+comma"
+previous_tab = "ctrl+alt+h"   # tmux: C-M-h previous-window
+next_tab = "ctrl+alt+l"       # tmux: C-M-l next-window
+switch_tab = "prefix+1..9"    # tmux base-index 1 muscle memory
+switch_workspace = ""
+close_tab = "prefix+shift+x"
+
+# Panes. Direct Ctrl-h/k/l mirrors tmux config; C-j intentionally remains prefix-only
+# because your tmux config notes it interferes with Shift+Enter in terminal settings.
+rename_pane = "prefix+shift+p"
+edit_scrollback = "prefix+e"
+focus_pane_left = "ctrl+h"
+focus_pane_down = "prefix+j"
+focus_pane_up = "ctrl+k"
+focus_pane_right = "ctrl+l"
+cycle_pane_next = "prefix+tab"
+cycle_pane_previous = "prefix+shift+tab"
+last_pane = ""
+# tmux-style splits: % for side-by-side, " for stacked.
+split_vertical = "prefix+%"
+split_horizontal = "prefix+\""
+close_pane = "prefix+x"
+zoom = "prefix+z"
+resize_mode = "prefix+r"
+toggle_sidebar = "prefix+b"
+
+# Navigate mode uses vi-style movement like the tmux pane bindings.
+navigate_workspace_up = "up"
+navigate_workspace_down = "down"
+navigate_pane_left = "h"
+navigate_pane_down = "j"
+navigate_pane_up = "k"
+navigate_pane_right = "l"
+
+# Redundant tmux-style split aliases: | for side-by-side, - for stacked.
+[[keys.command]]
+key = "prefix+|"
+type = "shell"
+command = "herdr pane split --direction right --current --focus"
+
+[[keys.command]]
+key = "prefix+minus"
+type = "shell"
+command = "herdr pane split --direction down --current --focus"
+
+# Herdr has no first-class prefix+H/J/K/L resize bindings, so use CLI commands.
+[[keys.command]]
+key = "prefix+shift+h"
+type = "shell"
+command = "herdr pane resize --direction left --amount 5 --current"
+
+[[keys.command]]
+key = "prefix+shift+j"
+type = "shell"
+command = "herdr pane resize --direction down --amount 5 --current"
+
+[[keys.command]]
+key = "prefix+shift+k"
+type = "shell"
+command = "herdr pane resize --direction up --amount 5 --current"
+
+[[keys.command]]
+key = "prefix+shift+l"
+type = "shell"
+command = "herdr pane resize --direction right --amount 5 --current"
+
+# Keep your lazygit helper from Herdr's default example.
+[[keys.command]]
+key = "prefix+alt+g"
+type = "pane"
+command = "lazygit"
+
+[keys.indexed]
+tabs = ""
+workspaces = ""
+agents = ""
+
+[worktrees]
+directory = "~/.herdr/worktrees"
+
+[ui]
+# tmux has mouse enabled, visible pane borders, bottom status, quiet bells.
+mouse_capture = true
+right_click_passthrough_modifier = ""
+mouse_scroll_lines = 3
+redraw_on_focus_gained = true
+confirm_close = true
+prompt_new_tab_name = false
+pane_borders = true
+pane_gaps = true
+show_agent_labels_on_pane_borders = false
+agent_panel_sort = "priority"
+accent = "#7aa2f7"
+sidebar_width = 26
+sidebar_min_width = 18
+sidebar_max_width = 36
+mobile_width_threshold = 64
+
+[ui.toast]
+# tmux config disables activity/bell noise; keep Herdr popups off too.
+delivery = "off"
+delay_seconds = 1
+
+[ui.toast.herdr]
+position = "bottom-right"
+
+[ui.toast.clipboard]
+enabled = true
+position = "bottom-center"
+
+[ui.sound]
+# Enable Herdr's built-in agent done / needs-attention sounds.
+enabled = true
+
+[session]
+resume_agents_on_restore = true
+
+[remote]
+# Keep Herdr's generated SSH bridge config for remote attach keepalives.
+manage_ssh_config = true
+
+[experimental]
+allow_nested = false
+kitty_graphics = false
+# Better approximation of tmux's large history-limit behavior across restarts.
+pane_history = true
+# Make prefix mode usable with non-ASCII input sources on macOS.
+switch_ascii_input_source_in_prefix = true
+# Expose cursor anchoring for agent TUIs that hide/paint their own cursor.
+reveal_hidden_cursor_for_cjk_ime = true
+cjk_ime_agents = ["pi", "opencode"]
+cjk_ime_cursor_shape = "steady_block"
+
+[advanced]
+# tmux history-limit is 100000 lines. Herdr uses bytes, so this is a generous approximation.
+scrollback_limit_bytes = 100000000

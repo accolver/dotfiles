@@ -51,6 +51,15 @@ for dir in "${CONFIG_DIRS[@]}"; do
 done
 
 echo ""
+echo "=== Setting up Herdr config ==="
+if [ -f "$DOTFILES_DIR/config/herdr/config.toml" ]; then
+    mkdir -p "$HOME/.config/herdr"
+    backup_and_link "$DOTFILES_DIR/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+else
+    echo "  Warning: $DOTFILES_DIR/config/herdr/config.toml not found, skipping"
+fi
+
+echo ""
 echo "=== Building bat theme cache ==="
 if command -v bat &> /dev/null; then
     bat cache --build
@@ -107,7 +116,7 @@ if ! command -v gcloud &> /dev/null; then
 fi
 
 echo "=== Running brew bundle ==="
-brew bundle install --file="$DOTFILES_DIR/Brewfile_linux"
+brew bundle install --file "$DOTFILES_DIR/Brewfile_linux"
 
 echo "=== Installing Flatpak apps ==="
 flatpak install -y flathub \
