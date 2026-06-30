@@ -43,10 +43,10 @@ open_worktree = "prefix+alt+o"
 remove_worktree = "prefix+alt+d"
 rename_workspace = "prefix+period"
 close_workspace = "prefix+shift+d"
-previous_workspace = "prefix+i"
-next_workspace = "prefix+o"
-previous_agent = ""
-next_agent = ""
+previous_workspace = "prefix+h"
+next_workspace = "prefix+l"
+previous_agent = "prefix+k"
+next_agent = "prefix+j"
 focus_agent = ""
 remote_image_paste = "ctrl+v"
 
@@ -59,12 +59,12 @@ switch_tab = "prefix+1..9"    # tmux base-index 1 muscle memory
 switch_workspace = ""
 close_tab = "prefix+shift+x"
 
-# Panes. Direct Ctrl-h/k/l mirrors tmux config; C-j intentionally remains prefix-only
-# because your tmux config notes it interferes with Shift+Enter in terminal settings.
+# Panes. Direct Ctrl-h/j/k/l mirrors tmux config. Prefix+j/k/h/l are reserved
+# for Herdr agent/workspace switching where configured.
 rename_pane = "prefix+shift+p"
 edit_scrollback = "prefix+e"
 focus_pane_left = "ctrl+h"
-focus_pane_down = "prefix+j"
+focus_pane_down = "ctrl+j"
 focus_pane_up = "ctrl+k"
 focus_pane_right = "ctrl+l"
 cycle_pane_next = "prefix+tab"
