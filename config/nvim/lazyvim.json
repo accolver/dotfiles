@@ -1,5 +1,8 @@
 {
-  "extras": [],
+  "extras": [
+    "lazyvim.plugins.extras.formatting.prettier",
+    "lazyvim.plugins.extras.lang.svelte"
+  ],
   "install_version": 8,
   "news": {
     "NEWS.md": "11866"

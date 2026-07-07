@@ -93,7 +93,6 @@ CONFIG_DIRS=(
     "ghostty"
     "git"
     "ncspot"
-    "nvim"
     "themes"
     "yazi"
 )
@@ -105,6 +104,16 @@ for dir in "${CONFIG_DIRS[@]}"; do
         echo "  Warning: $DOTFILES_DIR/config/$dir not found, skipping"
     fi
 done
+
+# Neovim is managed as a full-directory symlink so local config edits stay
+# connected to this repo. Plugin data/cache remain in Neovim's stdpath dirs.
+echo ""
+echo "Setting up Neovim config..."
+if [ -d "$DOTFILES_DIR/config/nvim" ]; then
+    backup_and_link "$DOTFILES_DIR/config/nvim" "$HOME/.config/nvim"
+else
+    echo "  Warning: $DOTFILES_DIR/config/nvim not found, skipping"
+fi
 
 # Herdr stores runtime sockets/sessions in ~/.config/herdr, so only symlink the config file.
 echo ""

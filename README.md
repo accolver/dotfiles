@@ -31,7 +31,7 @@ The install script will:
 
 1. Backup any existing configs to `~/.dotfiles-backup/`
 2. Create symlinks from the repo to your home directory
-3. Symlink tmux and tmuxinator project configs
+3. Symlink tmux, tmuxinator, and Neovim configs
 4. Create a `.zshrc.local` template for your secrets
 5. Optionally install Homebrew packages
 
@@ -114,6 +114,7 @@ brew bundle install --file Brewfile
 
 - [Neovim](https://neovim.io/) with LazyVim
 - Tokyo Night theme
+- `config/nvim` is symlinked to `~/.config/nvim` by the install scripts
 
 ## Shell Aliases
 
