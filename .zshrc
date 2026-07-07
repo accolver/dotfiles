@@ -492,10 +492,10 @@ function zj () {
 eval "$(mise activate zsh)"
 
 
-# Caffeinate aliases - keep Mac awake
+# Sleep aliases - keep Mac awake or restore idle sleep
 if [[ "$PLATFORM" == "Darwin" ]]; then
-    alias awake='sudo pmset -a disablesleep 1 && echo "☕ Sleep fully disabled (lid-safe)"'
-    alias rest='sudo pmset -a disablesleep 0 && echo "😴 Sleep re-enabled"'
+    alias awake='sudo pmset -a disablesleep 1 sleep 0 && echo "☕ Sleep fully disabled; idle sleep set to never"'
+    alias rest='sudo pmset -a disablesleep 0 sleep 15 && echo "😴 Sleep re-enabled; idle sleep set to 15 min"'
 
 
     # OpenClaw Completion

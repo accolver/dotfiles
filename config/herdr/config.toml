@@ -8,6 +8,7 @@ onboarding = false
 # Built-in Tokyo Night theme.
 name = "tokyo-night"
 
+auto_switch = false
 [theme.custom]
 # Keep pane backgrounds transparent/default while using Tokyo Night's palette.
 panel_bg = "reset"
@@ -152,7 +153,7 @@ mobile_width_threshold = 64
 
 [ui.toast]
 # tmux config disables activity/bell noise; keep Herdr popups off too.
-delivery = "off"
+delivery = "herdr"
 delay_seconds = 1
 
 [ui.toast.herdr]

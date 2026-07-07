@@ -11,6 +11,7 @@ window-decoration = true
 # background-opacity = 0.95
 background-blur-radius = 20
 
-# keybind = shift+enter=text:\x1b[13;2u
-keybind = shift+enter=text:\x0a
+# Send Shift+Enter as a modified Enter event, not Ctrl+J/LF. Herdr uses Ctrl+J
+# for pane-down, so raw LF is intercepted before OMP can treat it as a newline.
+keybind = shift+enter=text:\x1b[13;2u
 keybind = global:alt+g=toggle_quick_terminal
