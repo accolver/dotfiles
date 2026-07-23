@@ -10,8 +10,27 @@ name = "tokyo-night"
 
 auto_switch = false
 [theme.custom]
-# Keep pane backgrounds transparent/default while using Tokyo Night's palette.
-panel_bg = "reset"
+# Tokyo Night Storm palette, adapted to Herdr's semantic color roles.
+panel_bg = "#24283b"
+# Herdr uses surface_dim for the active agent row. Storm's blue7 makes the
+# currently focused workspace/tab/pane remain visibly selected.
+surface_dim = "#394b70"
+surface0 = "#3b4261"
+surface1 = "#414868"
+text = "#c0caf5"
+subtext0 = "#a9b1d6"
+overlay1 = "#a9b1d6"
+# Herdr uses overlay0 for unfocused pane borders and secondary labels. Tokyo
+# Night's muted comment gray keeps inactive panes subordinate to the blue focus.
+overlay0 = "#565f89"
+accent = "#7aa2f7"
+blue = "#7aa2f7"
+teal = "#7dcfff"
+mauve = "#bb9af7"
+green = "#9ece6a"
+yellow = "#e0af68"
+peach = "#ff9e64"
+red = "#f7768e"
 
 [terminal]
 # Match tmux's practical behavior: inherit shell and start new panes/tabs in the current context.
@@ -42,7 +61,7 @@ new_workspace = "prefix+shift+n"
 new_worktree = "prefix+shift+g"
 open_worktree = "prefix+alt+o"
 remove_worktree = "prefix+alt+d"
-rename_workspace = "prefix+period"
+rename_workspace = "prefix+m"
 close_workspace = "prefix+shift+d"
 previous_workspace = "prefix+h"
 next_workspace = "prefix+l"
@@ -56,13 +75,14 @@ new_tab = "prefix+c"
 rename_tab = "prefix+comma"
 previous_tab = "ctrl+alt+h"   # tmux: C-M-h previous-window
 next_tab = "ctrl+alt+l"       # tmux: C-M-l next-window
-switch_tab = "prefix+1..9"    # tmux base-index 1 muscle memory
-switch_workspace = ""
+# Use super so the same config works on Linux; on macOS terminals this is Cmd when reported as super/cmd.
+switch_tab = "super+1..9"              # super/cmd + 1..9 switches to tabs 1..9
+switch_workspace = "super+shift+1..9"  # shift+super/cmd + 1..9 switches to workspaces 1..9
 close_tab = "prefix+shift+x"
 
 # Panes. Direct Ctrl-h/j/k/l mirrors tmux config. Prefix+j/k/h/l are reserved
 # for Herdr agent/workspace switching where configured.
-rename_pane = "prefix+shift+p"
+rename_pane = "prefix+period"
 edit_scrollback = "prefix+e"
 focus_pane_left = "ctrl+h"
 focus_pane_down = "ctrl+j"
@@ -146,14 +166,29 @@ pane_gaps = true
 show_agent_labels_on_pane_borders = false
 agent_panel_sort = "priority"
 accent = "#7aa2f7"
-sidebar_width = 26
+sidebar_width = 34
 sidebar_min_width = 18
-sidebar_max_width = 36
+sidebar_max_width = 46
 mobile_width_threshold = 64
+
+# Prefer meaningful pane/session context over repeated workspace names in the Agents panel.
+[ui.sidebar.agents]
+row_gap = 1
+rows = [
+  ["state_icon", "workspace", "tab"],
+  ["pane", "agent"],
+]
+
+[ui.sidebar.agents.rows_by_agent]
+# Pi reports its session name as the pane title. Herdr drops missing values, so
+# this order falls back through: Pi session/pane name -> tab -> workspace.
+pi = [
+  ["state_icon", "pane", "tab", "workspace"],
+]
 
 [ui.toast]
 # tmux config disables activity/bell noise; keep Herdr popups off too.
-delivery = "herdr"
+delivery = "system"
 delay_seconds = 1
 
 [ui.toast.herdr]

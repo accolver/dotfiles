@@ -15,3 +15,44 @@ background-blur-radius = 20
 # for pane-down, so raw LF is intercepted before OMP can treat it as a newline.
 keybind = shift+enter=text:\x1b[13;2u
 keybind = global:alt+g=toggle_quick_terminal
+
+# Send Super/Cmd+1..9 through as CSI-u sequences so terminal apps like Herdr
+# and tmux can bind them instead of Ghostty consuming them for its own tabs.
+keybind = super+digit_1=csi:49;9u
+keybind = super+1=csi:49;9u
+keybind = super+digit_2=csi:50;9u
+keybind = super+2=csi:50;9u
+keybind = super+digit_3=csi:51;9u
+keybind = super+3=csi:51;9u
+keybind = super+digit_4=csi:52;9u
+keybind = super+4=csi:52;9u
+keybind = super+digit_5=csi:53;9u
+keybind = super+5=csi:53;9u
+keybind = super+digit_6=csi:54;9u
+keybind = super+6=csi:54;9u
+keybind = super+digit_7=csi:55;9u
+keybind = super+7=csi:55;9u
+keybind = super+digit_8=csi:56;9u
+keybind = super+8=csi:56;9u
+keybind = super+digit_9=csi:57;9u
+keybind = super+9=csi:57;9u
+
+# Shift+Super/Cmd+1..9 uses the same CSI-u pattern with the Shift bit set.
+keybind = super+shift+digit_1=csi:49;10u
+keybind = super+shift+1=csi:49;10u
+keybind = super+shift+digit_2=csi:50;10u
+keybind = super+shift+2=csi:50;10u
+keybind = super+shift+digit_3=csi:51;10u
+keybind = super+shift+3=csi:51;10u
+keybind = super+shift+digit_4=csi:52;10u
+keybind = super+shift+4=csi:52;10u
+keybind = super+shift+digit_5=csi:53;10u
+keybind = super+shift+5=csi:53;10u
+keybind = super+shift+digit_6=csi:54;10u
+keybind = super+shift+6=csi:54;10u
+keybind = super+shift+digit_7=csi:55;10u
+keybind = super+shift+7=csi:55;10u
+keybind = super+shift+digit_8=csi:56;10u
+keybind = super+shift+8=csi:56;10u
+keybind = super+shift+digit_9=csi:57;10u
+keybind = super+shift+9=csi:57;10u
