@@ -61,11 +61,14 @@ fi
 
 echo ""
 echo "=== Setting up Herdr config ==="
-if [ -f "$DOTFILES_DIR/config/herdr/config.toml" ]; then
+# Herdr stores runtime sockets/sessions in ~/.config/herdr, so symlink only
+# the static config and helper script instead of the whole directory.
+if [ -f "$DOTFILES_DIR/config/herdr/config.toml" ] && [ -f "$DOTFILES_DIR/config/herdr/smart-pane-nav.sh" ]; then
     mkdir -p "$HOME/.config/herdr"
     backup_and_link "$DOTFILES_DIR/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+    backup_and_link "$DOTFILES_DIR/config/herdr/smart-pane-nav.sh" "$HOME/.config/herdr/smart-pane-nav.sh"
 else
-    echo "  Warning: $DOTFILES_DIR/config/herdr/config.toml not found, skipping"
+    echo "  Warning: Herdr static config files not found, skipping"
 fi
 
 echo ""

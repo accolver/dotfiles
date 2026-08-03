@@ -80,14 +80,14 @@ switch_tab = "super+1..9"              # super/cmd + 1..9 switches to tabs 1..9
 switch_workspace = "super+shift+1..9"  # shift+super/cmd + 1..9 switches to workspaces 1..9
 close_tab = "prefix+shift+x"
 
-# Panes. Direct Ctrl-h/j/k/l mirrors tmux config. Prefix+j/k/h/l are reserved
-# for Herdr agent/workspace switching where configured.
+# Panes. Ctrl-h/l are conditionally dispatched below so Neovim receives them
+# when it is foreground; Ctrl-j/k continue to navigate Herdr directly.
 rename_pane = "prefix+period"
 edit_scrollback = "prefix+e"
-focus_pane_left = "ctrl+h"
+focus_pane_left = ""
 focus_pane_down = "ctrl+j"
 focus_pane_up = "ctrl+k"
-focus_pane_right = "ctrl+l"
+focus_pane_right = ""
 cycle_pane_next = "prefix+tab"
 cycle_pane_previous = "prefix+shift+tab"
 last_pane = ""
@@ -106,6 +106,19 @@ navigate_pane_left = "h"
 navigate_pane_down = "j"
 navigate_pane_up = "k"
 navigate_pane_right = "l"
+
+# Let Neovim own Ctrl-h/l while it is foreground; otherwise move between Herdr panes.
+[[keys.command]]
+key = "ctrl+h"
+type = "shell"
+command = 'sh "$HOME/.config/herdr/smart-pane-nav.sh" left'
+description = "focus left Herdr pane or Neovim window"
+
+[[keys.command]]
+key = "ctrl+l"
+type = "shell"
+command = 'sh "$HOME/.config/herdr/smart-pane-nav.sh" right'
+description = "focus right Herdr pane or Neovim window"
 
 # Redundant tmux-style split aliases: | for side-by-side, - for stacked.
 [[keys.command]]

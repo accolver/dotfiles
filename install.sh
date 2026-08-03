@@ -115,18 +115,20 @@ else
     echo "  Warning: $DOTFILES_DIR/config/nvim not found, skipping"
 fi
 
-# Herdr stores runtime sockets/sessions in ~/.config/herdr, so only symlink the config file.
+# Herdr stores runtime sockets/sessions in ~/.config/herdr, so symlink only
+# the static config and helper script instead of the whole directory.
 echo ""
 echo "Setting up Herdr config..."
-if [ -f "$DOTFILES_DIR/config/herdr/config.toml" ]; then
+if [ -f "$DOTFILES_DIR/config/herdr/config.toml" ] && [ -f "$DOTFILES_DIR/config/herdr/smart-pane-nav.sh" ]; then
     if [ "$DRY_RUN" = true ]; then
         echo "  [DRY RUN] Would create $HOME/.config/herdr"
     else
         mkdir -p "$HOME/.config/herdr"
     fi
     backup_and_link "$DOTFILES_DIR/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+    backup_and_link "$DOTFILES_DIR/config/herdr/smart-pane-nav.sh" "$HOME/.config/herdr/smart-pane-nav.sh"
 else
-    echo "  Warning: $DOTFILES_DIR/config/herdr/config.toml not found, skipping"
+    echo "  Warning: Herdr static config files not found, skipping"
 fi
 
 # Build bat theme cache so custom themes are available
