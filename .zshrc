@@ -19,6 +19,9 @@ export ZSH="$HOME/.oh-my-zsh"
 
 export EDITOR=nvim
 
+# Retain supported provider prompt caches longer (Anthropic: 1h, OpenAI: 24h).
+export PI_CACHE_RETENTION=long
+
 # Load local machine configurations and secrets
 if [[ -f "$HOME/.zshrc.local" ]]; then
     source "$HOME/.zshrc.local"
@@ -127,8 +130,10 @@ alias python="python3"
 alias c="clear"
 alias mux="tmuxinator"
 alias lg="lazygit"
+alias ld="lazydocker"
 alias claude-yolo="claude --dangerously-skip-permissions"
 alias oc="opencode"
+alias rclone-docs='rclone copy "$HOME/Documents" "vault:Documents" --progress --create-empty-src-dirs --exclude=".DS_Store"'
 
 alias ts-up='tailscale set \
   --exit-node="us-slc-wg-302.mullvad.ts.net" \
