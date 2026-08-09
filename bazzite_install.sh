@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
 
 backup_and_link() {
     local source="$1"
     local target="$2"
+    local resolved_source
+    resolved_source="$(readlink -f "$source")"
 
     if [ -L "$target" ]; then
         local current_target
         current_target="$(readlink -f "$target")"
-        if [ "$current_target" = "$source" ]; then
+        if [ "$current_target" = "$resolved_source" ]; then
             echo "  Already linked: $source -> $target"
             return 0
         fi
@@ -78,11 +80,13 @@ EOF
 copy_dir_if_changed() {
     local source="$1"
     local target="$2"
+    local resolved_source
+    resolved_source="$(readlink -f "$source")"
 
     if [ -L "$target" ]; then
         local current_target
         current_target="$(readlink -f "$target")"
-        if [ "$current_target" = "$source" ]; then
+        if [ "$current_target" = "$resolved_source" ]; then
             echo "  Already linked: $source -> $target"
             return 0
         fi
@@ -173,7 +177,6 @@ CONFIG_DIRS=(
     "ghostty"
     "git"
     "ncspot"
-    "nvim"
     "themes"
     "yazi"
 )
@@ -187,6 +190,26 @@ for dir in "${CONFIG_DIRS[@]}"; do
 done
 
 echo ""
+echo "=== Setting up Neovim config ==="
+if [ -d "$DOTFILES_DIR/config/nvim" ]; then
+    backup_and_link "$DOTFILES_DIR/config/nvim" "$HOME/.config/nvim"
+else
+    echo "  Warning: $DOTFILES_DIR/config/nvim not found, skipping"
+fi
+
+echo ""
+echo "=== Setting up Herdr config ==="
+# Herdr stores runtime sockets/sessions in ~/.config/herdr, so symlink only
+# the static config and helper script instead of the whole directory.
+if [ -f "$DOTFILES_DIR/config/herdr/config.toml" ] && [ -f "$DOTFILES_DIR/config/herdr/smart-pane-nav.sh" ]; then
+    mkdir -p "$HOME/.config/herdr"
+    backup_and_link "$DOTFILES_DIR/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+    backup_and_link "$DOTFILES_DIR/config/herdr/smart-pane-nav.sh" "$HOME/.config/herdr/smart-pane-nav.sh"
+else
+    echo "  Warning: Herdr static config files not found, skipping"
+fi
+
+echo ""
 echo "=== Building bat theme cache ==="
 if need_cmd bat; then
     bat cache --build
@@ -197,7 +220,13 @@ fi
 
 echo ""
 echo "=== Setting up OpenCode config ==="
-copy_dir_if_changed "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
+# OpenCode config is symlinked so agents, commands, and local edits stay
+# connected to this repo like the rest of the dotfiles.
+if [ -d "$DOTFILES_DIR/config/opencode" ]; then
+    backup_and_link "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
+else
+    echo "  Warning: $DOTFILES_DIR/config/opencode not found, skipping"
+fi
 
 echo ""
 echo "=== Setting up secrets file ==="

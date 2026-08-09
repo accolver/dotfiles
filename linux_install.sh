@@ -1,16 +1,29 @@
 #!/bin/bash
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
+LINKS_ONLY=0
+
+if [ "${1:-}" = "--links-only" ]; then
+    LINKS_ONLY=1
+    shift
+fi
+
+if [ "$#" -gt 0 ]; then
+    echo "Usage: $0 [--links-only]" >&2
+    exit 2
+fi
 
 backup_and_link() {
     local source="$1"
     local target="$2"
+    local resolved_source
+    resolved_source=$(readlink -f "$source")
     
     if [ -L "$target" ]; then
         current_target=$(readlink -f "$target")
-        if [ "$current_target" = "$source" ]; then
+        if [ "$current_target" = "$resolved_source" ]; then
             echo "  Already linked: $source -> $target"
             return 0
         fi
@@ -26,13 +39,19 @@ backup_and_link() {
     ln -sf "$source" "$target"
 }
 
+need_cmd() {
+    command -v "$1" >/dev/null 2>&1
+}
+
 copy_dir_if_changed() {
     local source="$1"
     local target="$2"
+    local resolved_source
+    resolved_source=$(readlink -f "$source")
 
     if [ -L "$target" ]; then
         current_target=$(readlink -f "$target")
-        if [ "$current_target" = "$source" ]; then
+        if [ "$current_target" = "$resolved_source" ]; then
             echo "  Already linked: $source -> $target"
             return 0
         fi
@@ -135,7 +154,13 @@ fi
 
 echo ""
 echo "=== Setting up OpenCode config ==="
-copy_dir_if_changed "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
+# OpenCode config is symlinked so agents, commands, and local edits stay
+# connected to this repo like the rest of the dotfiles.
+if [ -d "$DOTFILES_DIR/config/opencode" ]; then
+    backup_and_link "$DOTFILES_DIR/config/opencode" "$HOME/.config/opencode"
+else
+    echo "  Warning: $DOTFILES_DIR/config/opencode not found, skipping"
+fi
 
 echo ""
 echo "=== Setting up secrets file ==="
@@ -145,6 +170,12 @@ if [ ! -f "$HOME/.zshrc.local" ]; then
     echo "  IMPORTANT: Open ~/.zshrc.local and fill in your secrets!"
 else
     echo "  .zshrc.local already exists"
+fi
+
+if [ "$LINKS_ONLY" -eq 1 ]; then
+    echo ""
+    echo "=== Links-only setup complete ==="
+    exit 0
 fi
 
 echo ""
@@ -159,11 +190,18 @@ fc-cache -f -v || true
 cd "$DOTFILES_DIR"
 
 echo "=== Installing system packages via apt ==="
-sudo apt update
-sudo apt install -y playerctl steam-devices
+if need_cmd apt; then
+  sudo apt update
+  sudo apt install -y playerctl steam-devices
+else
+  echo "  apt not found; skipping apt packages"
+  echo "  On Fedora/Bazzite, prefer Flatpak/Homebrew. If needed, manually layer host packages with rpm-ostree."
+fi
 
 echo "=== Installing gcloud CLI ==="
-if ! command -v gcloud &> /dev/null; then
+if need_cmd gcloud; then
+  echo "  gcloud already installed"
+elif need_cmd apt; then
   if [ ! -f /usr/share/keyrings/google-cloud-sdk.gpg ]; then
     curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/google-cloud-sdk.gpg
   fi
@@ -171,15 +209,34 @@ if ! command -v gcloud &> /dev/null; then
     echo "deb [signed-by=/usr/share/keyrings/google-cloud-sdk.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
   fi
   sudo apt update && sudo apt install -y google-cloud-cli
+elif need_cmd brew; then
+  brew install google-cloud-sdk
 else
-  echo "  gcloud already installed"
+  echo "  Neither apt nor brew found; install gcloud manually and rerun if needed"
 fi
 
 echo "=== Running brew bundle ==="
-brew bundle install --file "$DOTFILES_DIR/Brewfile_linux"
+if need_cmd brew; then
+  # Homebrew now requires explicit trust for some third-party taps in non-interactive bundle runs.
+  for tap in \
+    bgreenwell/xleak \
+    dagger/tap \
+    dart-lang/dart \
+    dopplerhq/cli \
+    oven-sh/bun \
+    steipete/tap
+  do
+    brew trust "$tap" >/dev/null 2>&1 || true
+  done
+  brew bundle install --file "$DOTFILES_DIR/Brewfile_linux"
+else
+  echo "  Homebrew not found; install Homebrew and rerun this script for CLI packages"
+fi
 
 echo "=== Installing Flatpak apps ==="
-flatpak install -y flathub \
+if need_cmd flatpak; then
+  flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  flatpak install -y flathub \
   com.google.AndroidStudio \
   com.bitwarden.desktop \
   com.brave.Browser \
@@ -198,5 +255,8 @@ flatpak install -y flathub \
   org.wezfurlong.wezterm \
   dev.zed.Zed \
   com.usebottles.bottles
+else
+  echo "  flatpak not found; skipping GUI apps"
+fi
 
 echo "=== Setup complete ==="
