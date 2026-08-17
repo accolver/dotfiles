@@ -134,6 +134,7 @@ alias ld="lazydocker"
 alias claude-yolo="claude --dangerously-skip-permissions"
 alias oc="opencode"
 alias rclone-docs='rclone copy "$HOME/Documents" "vault:Documents" --progress --create-empty-src-dirs --exclude=".DS_Store"'
+alias rclone-crypto='rclone copy "$HOME/Documents/Personal/crypto" "crypto-vault:" --progress --create-empty-src-dirs --exclude=".DS_Store"'
 
 alias ts-up='sudo tailscale set \
   --exit-node="us-lax-wg-002.mullvad.ts.net" \
