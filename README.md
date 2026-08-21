@@ -44,16 +44,28 @@ Use `--dry-run` to see what would happen without making any changes.
 
 Use `unraid_install.sh` on Unraid instead of the general-purpose install
 scripts. It preserves Tower's `/boot/config`-managed shell files, restores only
-Unraid-safe symlinks, installs global agent skills, bootstraps OpenBSD `nc` for
-Herdr Unix-socket navigation, and can restore Neovim plugins from the lockfile.
+Unraid-safe symlinks, installs global agent skills, updates Pi and installed Pi
+packages, bootstraps OpenBSD `nc` for Herdr Unix-socket navigation, and restores
+Neovim plugins from the lockfile without leaving `lazy-lock.json` dirty.
 
 ```bash
 ./unraid_install.sh --dry-run
 ./unraid_install.sh
 
-# Array-start mode: no network Pi package installs and no Neovim plugin sync
+# Same manual update path, named for operator clarity
+./unraid_install.sh --upgrade
+
+# Array-start mode: no git pull, network Pi package installs, Pi updates, or Neovim sync
 ./unraid_install.sh --startup
+
+# Useful local controls
+./unraid_install.sh --no-git-pull --no-pi-update --no-nvim-sync
 ```
+
+The script is idempotent. Re-running it updates the dotfiles checkout with
+`git pull --ff-only`, reasserts the symlinks, ensures required Pi packages are
+installed, runs `pi update --all`, checks OpenBSD `nc`, and restores Neovim
+plugins from the committed lockfile.
 
 For Minuet AI completion on Tower, set `FIREWORKS_API_KEY` in the private
 persistent file `/boot/config/shell/.zshrc.local`; it is restored to

@@ -10,16 +10,24 @@ set -Eeuo pipefail
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 DRY_RUN=false
 STARTUP_MODE=false
+MODE="interactive"
+SYNC_DOTFILES=true
 SYNC_NVIM=true
 INSTALL_PI_PACKAGES=true
+UPDATE_PI_PACKAGES=true
 
 usage() {
   cat <<EOF
-Usage: $0 [--dry-run] [--startup] [--no-nvim-sync]
+Usage: $0 [--dry-run] [--upgrade] [--startup] [--no-git-pull] [--no-pi-update] [--no-nvim-sync]
 
   --dry-run       Show actions without changing files.
+  --upgrade       Explicit manual upgrade mode. Same network-capable behavior as
+                  the default interactive run, but named for operator clarity.
   --startup       Fast array-start mode: relink local config/skills, skip network
-                  package installs and Neovim sync.
+                  package installs, Pi updates, git pulls, and Neovim sync.
+  --no-git-pull   Do not pull this dotfiles repository.
+  --no-pi-update  Do not run pi update. Pi package installs still ensure required
+                  packages are present.
   --no-nvim-sync  Skip Neovim Lazy sync.
 EOF
 }
@@ -27,7 +35,10 @@ EOF
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=true ;;
-    --startup) STARTUP_MODE=true; SYNC_NVIM=false; INSTALL_PI_PACKAGES=false ;;
+    --upgrade) MODE="upgrade" ;;
+    --startup) STARTUP_MODE=true; MODE="startup"; SYNC_DOTFILES=false; SYNC_NVIM=false; INSTALL_PI_PACKAGES=false; UPDATE_PI_PACKAGES=false ;;
+    --no-git-pull) SYNC_DOTFILES=false ;;
+    --no-pi-update) UPDATE_PI_PACKAGES=false ;;
     --no-nvim-sync) SYNC_NVIM=false ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $arg" >&2; usage >&2; exit 2 ;;
@@ -47,6 +58,31 @@ run() {
 
 is_unraid() {
   [ -f /etc/os-release ] && grep -q '^ID="\?unraid-os"\?$' /etc/os-release
+}
+
+sync_dotfiles_repo() {
+  echo "=== Updating dotfiles repository ==="
+
+  if [ "$SYNC_DOTFILES" != true ]; then
+    if [ "$STARTUP_MODE" = true ]; then
+      echo "  Startup mode: skipping dotfiles git pull"
+    else
+      echo "  Skipping dotfiles git pull"
+    fi
+    return 0
+  fi
+
+  if [ ! -d "$DOTFILES_DIR/.git" ]; then
+    echo "  $DOTFILES_DIR is not a Git checkout; skipping pull"
+    return 0
+  fi
+
+  if ! command -v git >/dev/null 2>&1; then
+    echo "  git not found; skipping pull"
+    return 0
+  fi
+
+  run git -C "$DOTFILES_DIR" pull --ff-only
 }
 
 backup_and_link() {
@@ -92,8 +128,8 @@ setup_agent_skills() {
 
   echo "=== Setting up global agent skills ==="
 
-  if [ "$INSTALL_PI_PACKAGES" = true ]; then
-    if command -v pi >/dev/null 2>&1; then
+  if command -v pi >/dev/null 2>&1; then
+    if [ "$INSTALL_PI_PACKAGES" = true ]; then
       for package in \
         "git:github.com/obra/superpowers" \
         "https://github.com/cathrynlavery/diagram-design"
@@ -102,10 +138,15 @@ setup_agent_skills() {
         run pi install "$package"
       done
     else
-      echo "  pi not found; skipping Pi package installs"
+      echo "  Startup mode: skipping network Pi package installs and updates"
+    fi
+
+    if [ "$UPDATE_PI_PACKAGES" = true ]; then
+      echo "  Updating installed Pi packages"
+      run pi update --all
     fi
   else
-    echo "  Startup mode: skipping network Pi package installs"
+    echo "  pi not found; skipping Pi package installs and updates"
   fi
 
   if [ ! -d "$source_dir" ]; then
@@ -298,8 +339,9 @@ if ! is_unraid; then
 fi
 
 echo "Dotfiles directory: $DOTFILES_DIR"
-[ "$STARTUP_MODE" = true ] && echo "Mode: startup" || echo "Mode: interactive"
+echo "Mode: $MODE"
 
+sync_dotfiles_repo
 setup_unraid_links
 setup_agent_skills
 install_netcat_bootstrap
