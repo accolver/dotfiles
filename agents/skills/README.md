@@ -19,3 +19,7 @@ Superpowers is installed as a Pi package instead of vendored here:
 ```bash
 pi install git:github.com/obra/superpowers
 ```
+
+Do not vendor a separate global `writing-skills` skill here. Superpowers
+provides `writing-skills`, and keeping an older copy in `~/.agents/skills`
+creates a duplicate-skill warning in Pi.

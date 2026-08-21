@@ -103,7 +103,9 @@ pi install https://github.com/cathrynlavery/diagram-design
 
 Superpowers is intentionally installed as a Pi package rather than vendored in
 this repository so its Pi extension can provide the startup/compaction
-bootstrap behavior. Diagram Design is also installed as a Pi package to avoid
+bootstrap behavior. Use Superpowers' `writing-skills`; do not keep an older
+global `~/.agents/skills/writing-skills` copy, because that creates a duplicate
+skill warning in Pi. Diagram Design is also installed as a Pi package to avoid
 creating a duplicate global `diagram-design` skill when the Pi package is
 already present.
 
