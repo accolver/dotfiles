@@ -94,13 +94,18 @@ setup_agent_skills() {
     echo "Setting up global agent skills..."
 
     if command -v pi >/dev/null 2>&1; then
-        if [ "$DRY_RUN" = true ]; then
-            echo "  [DRY RUN] Would run: pi install git:github.com/obra/superpowers"
-        else
-            pi install git:github.com/obra/superpowers
-        fi
+        for package in \
+            "git:github.com/obra/superpowers" \
+            "https://github.com/cathrynlavery/diagram-design"
+        do
+            if [ "$DRY_RUN" = true ]; then
+                echo "  [DRY RUN] Would run: pi install $package"
+            else
+                pi install "$package"
+            fi
+        done
     else
-        echo "  pi not found; skipping Superpowers Pi package install"
+        echo "  pi not found; skipping Pi package installs"
     fi
 
     if [ ! -d "$source_dir" ]; then

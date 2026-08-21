@@ -80,9 +80,14 @@ setup_agent_skills() {
     echo "=== Setting up global agent skills ==="
 
     if need_cmd pi; then
-        pi install git:github.com/obra/superpowers
+        for package in \
+            "git:github.com/obra/superpowers" \
+            "https://github.com/cathrynlavery/diagram-design"
+        do
+            pi install "$package"
+        done
     else
-        echo "  pi not found; skipping Superpowers Pi package install"
+        echo "  pi not found; skipping Pi package installs"
     fi
 
     if [ ! -d "$source_dir" ]; then

@@ -94,15 +94,18 @@ Currently managed:
 - `improve-codebase-architecture`
 - `unslop`
 
-The install scripts also run this when `pi` is available:
+The install scripts also install these Pi packages when `pi` is available:
 
 ```bash
 pi install git:github.com/obra/superpowers
+pi install https://github.com/cathrynlavery/diagram-design
 ```
 
 Superpowers is intentionally installed as a Pi package rather than vendored in
 this repository so its Pi extension can provide the startup/compaction
-bootstrap behavior.
+bootstrap behavior. Diagram Design is also installed as a Pi package to avoid
+creating a duplicate global `diagram-design` skill when the Pi package is
+already present.
 
 ## Homebrew
 
