@@ -40,6 +40,25 @@ The install script will:
 
 Use `--dry-run` to see what would happen without making any changes.
 
+## Unraid / Tower
+
+Use `unraid_install.sh` on Unraid instead of the general-purpose install
+scripts. It preserves Tower's `/boot/config`-managed shell files, restores only
+Unraid-safe symlinks, installs global agent skills, bootstraps OpenBSD `nc` for
+Herdr Unix-socket navigation, and can restore Neovim plugins from the lockfile.
+
+```bash
+./unraid_install.sh --dry-run
+./unraid_install.sh
+
+# Array-start mode: no network Pi package installs and no Neovim plugin sync
+./unraid_install.sh --startup
+```
+
+For Minuet AI completion on Tower, set `FIREWORKS_API_KEY` in the private
+persistent file `/boot/config/shell/.zshrc.local`; it is restored to
+`/root/.zshrc.local` at boot.
+
 ## Directory Structure
 
 ```
@@ -50,7 +69,10 @@ dotfiles/
 ├── .tmux.conf                # Tmux config
 ├── .tmuxinator/              # Tmuxinator project configs
 ├── Brewfile                  # Homebrew packages
-├── install.sh                # Setup script
+├── install.sh                # General setup script
+├── linux_install.sh          # Linux workstation setup script
+├── bazzite_install.sh        # Bazzite workstation setup script
+├── unraid_install.sh         # Tower/Unraid-safe setup script
 ├── README.md
 ├── agents/                   # Managed global agent skills
 │   └── skills/
