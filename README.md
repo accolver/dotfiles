@@ -11,6 +11,7 @@ than blindly copying. Proceed at your own risk!
 - **Editor:** Neovim (LazyVim-based config)
 - **Terminal:** Ghostty and tmux
 - **Tools:** fzf, eza, bat, zoxide, tmuxinator, lazygit, and more
+- **Agent skills:** selected global skills for Pi/agent workflows, plus Superpowers as a Pi package
 
 ## Quick Start
 
@@ -32,8 +33,10 @@ The install script will:
 1. Backup any existing configs to `~/.dotfiles-backup/`
 2. Create symlinks from the repo to your home directory
 3. Symlink tmux, tmuxinator, and Neovim configs
-4. Create a `.zshrc.local` template for your secrets
-5. Optionally install Homebrew packages
+4. Link managed skills from `agents/skills/` into `~/.agents/skills/`
+5. Install Obra/Superpowers as a Pi package when `pi` is available
+6. Create a `.zshrc.local` template for your secrets
+7. Optionally install Homebrew packages
 
 Use `--dry-run` to see what would happen without making any changes.
 
@@ -49,6 +52,8 @@ dotfiles/
 ├── Brewfile                  # Homebrew packages
 ├── install.sh                # Setup script
 ├── README.md
+├── agents/                   # Managed global agent skills
+│   └── skills/
 └── config/                   # ~/.config contents
     ├── bat/                  # Bat syntax highlighter themes
     ├── ghostty/              # Ghostty terminal
@@ -75,6 +80,29 @@ On a new machine:
 The `--inject-secrets` flag reads `CONTEXT7_API_KEY` and `FIRECRAWL_API_KEY`
 from your `.zshrc.local` and injects them into
 `~/.config/opencode/opencode.jsonc`.
+
+## Agent Skills
+
+Selected skills are tracked in `agents/skills/` and linked into
+`~/.agents/skills/` by every install script.
+
+Currently managed:
+
+- `grill-me`
+- `domain-modeling`
+- `codebase-design`
+- `improve-codebase-architecture`
+- `unslop`
+
+The install scripts also run this when `pi` is available:
+
+```bash
+pi install git:github.com/obra/superpowers
+```
+
+Superpowers is intentionally installed as a Pi package rather than vendored in
+this repository so its Pi extension can provide the startup/compaction
+bootstrap behavior.
 
 ## Homebrew
 

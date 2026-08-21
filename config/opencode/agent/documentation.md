@@ -104,7 +104,7 @@ Retrieves a list of users.
 
 ```bash
 curl -X GET "https://api.example.com/users?page=1&limit=10" \
-  -H "Authorization: Bearer YOUR_TOKEN"
+  -H "Authorization: Bearer <example-token>"
 ```
 
 ```

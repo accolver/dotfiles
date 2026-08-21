@@ -136,10 +136,10 @@ element.innerHTML = DOMPurify.sanitize(userInput);
 
 ```javascript
 // ❌ Vulnerable
-const API_KEY = 'sk_live_abc123...';
+const hardcodedSecret = '<redacted-placeholder>';
 
 // ✅ Safe
-const API_KEY = process.env.API_KEY;
+const apiKey = process.env.API_KEY;
 ```
 
 ### Weak Password Hashing

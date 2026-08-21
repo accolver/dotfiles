@@ -107,6 +107,34 @@ copy_dir_if_changed() {
     cp -R "$source" "$target"
 }
 
+setup_agent_skills() {
+    local source_dir="$DOTFILES_DIR/agents/skills"
+    local target_dir="$HOME/.agents/skills"
+
+    echo ""
+    echo "=== Setting up global agent skills ==="
+
+    if need_cmd pi; then
+        pi install git:github.com/obra/superpowers
+    else
+        echo "  pi not found; skipping Superpowers Pi package install"
+    fi
+
+    if [ ! -d "$source_dir" ]; then
+        echo "  Warning: $source_dir not found, skipping managed skill symlinks"
+        return 0
+    fi
+
+    mkdir -p "$target_dir"
+    for skill_dir in "$source_dir"/*; do
+        [ -d "$skill_dir" ] || continue
+        local skill_name
+        skill_name="$(basename "$skill_dir")"
+        ln -sfn "$skill_dir" "$target_dir/$skill_name"
+        echo "  Linked $skill_name"
+    done
+}
+
 install_nerd_font() {
     local font="$1"
     local marker="$HOME/.local/share/fonts/.dotfiles-${font}-installed"
@@ -227,6 +255,8 @@ if [ -d "$DOTFILES_DIR/config/opencode" ]; then
 else
     echo "  Warning: $DOTFILES_DIR/config/opencode not found, skipping"
 fi
+
+setup_agent_skills
 
 echo ""
 echo "=== Setting up secrets file ==="

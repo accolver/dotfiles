@@ -86,6 +86,47 @@ setup_opencode_config() {
     fi
 }
 
+setup_agent_skills() {
+    local source_dir="$DOTFILES_DIR/agents/skills"
+    local target_dir="$HOME/.agents/skills"
+
+    echo ""
+    echo "Setting up global agent skills..."
+
+    if command -v pi >/dev/null 2>&1; then
+        if [ "$DRY_RUN" = true ]; then
+            echo "  [DRY RUN] Would run: pi install git:github.com/obra/superpowers"
+        else
+            pi install git:github.com/obra/superpowers
+        fi
+    else
+        echo "  pi not found; skipping Superpowers Pi package install"
+    fi
+
+    if [ ! -d "$source_dir" ]; then
+        echo "  Warning: $source_dir not found, skipping managed skill symlinks"
+        return 0
+    fi
+
+    if [ "$DRY_RUN" = true ]; then
+        echo "  [DRY RUN] Would create $target_dir"
+    else
+        mkdir -p "$target_dir"
+    fi
+
+    for skill_dir in "$source_dir"/*; do
+        [ -d "$skill_dir" ] || continue
+        local skill_name
+        skill_name="$(basename "$skill_dir")"
+        if [ "$DRY_RUN" = true ]; then
+            echo "  [DRY RUN] Would link $skill_dir -> $target_dir/$skill_name"
+        else
+            ln -sfn "$skill_dir" "$target_dir/$skill_name"
+            echo "  Linked $skill_name"
+        fi
+    done
+}
+
 # 1. Create Symlinks for home-directory dotfiles
 echo "Setting up home-directory dotfiles..."
 backup_and_link "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
@@ -177,6 +218,8 @@ fi
 echo ""
 echo "Setting up OpenCode config..."
 setup_opencode_config
+
+setup_agent_skills
 
 # 4. Setup Secrets File
 echo ""
