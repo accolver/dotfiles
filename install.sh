@@ -6,16 +6,48 @@ set -e
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
 DRY_RUN=false
+SKIP_BREW="${SKIP_BREW:-false}"
+if [ "$SKIP_BREW" = "1" ]; then
+    SKIP_BREW=true
+fi
+INJECT_SECRETS=false
+
+usage() {
+    cat <<EOF
+Usage: $0 [OPTIONS]
+
+Options:
+  --dry-run              Show what would happen without making changes
+  --skip-brew, --no-brew Skip Homebrew package installation
+  --inject-secrets       Inject secrets into configuration files and exit
+  -h, --help             Show this help message
+EOF
+}
 
 # Parse arguments
-for arg in "$@"; do
-    case $arg in
+while [ $# -gt 0 ]; do
+    case "$1" in
         --dry-run)
             DRY_RUN=true
             shift
             ;;
+        --skip-brew|--no-brew)
+            SKIP_BREW=true
+            shift
+            ;;
         --inject-secrets)
-            # Handled below
+            INJECT_SECRETS=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown argument: $1" >&2
+            echo "" >&2
+            usage >&2
+            exit 1
             ;;
     esac
 done
@@ -54,7 +86,7 @@ backup_and_link() {
         echo "  [DRY RUN] Would link $source -> $target"
     else
         echo "  Linking $source -> $target"
-        ln -sf "$source" "$target"
+        ln -sfn "$source" "$target"
     fi
 }
 
@@ -123,6 +155,10 @@ setup_agent_skills() {
         [ -d "$skill_dir" ] || continue
         local skill_name
         skill_name="$(basename "$skill_dir")"
+        if [ -L "$target_dir/$skill_name" ] && [ "$(readlink -f "$target_dir/$skill_name")" = "$skill_dir" ]; then
+            echo "  $skill_name already linked"
+            continue
+        fi
         if [ "$DRY_RUN" = true ]; then
             echo "  [DRY RUN] Would link $skill_dir -> $target_dir/$skill_name"
         else
@@ -276,22 +312,31 @@ inject_secrets() {
 }
 
 # Handle --inject-secrets flag
-if [ "$1" = "--inject-secrets" ]; then
+if [ "$INJECT_SECRETS" = true ]; then
     inject_secrets
     exit 0
 fi
 
-# Skip Brewfile in dry-run mode
-if [ "$DRY_RUN" = true ]; then
-    echo ""
+# 6. Install Homebrew Packages
+echo ""
+if [ "$SKIP_BREW" = true ]; then
+    if [ "$DRY_RUN" = true ]; then
+        echo "[DRY RUN] Skipping Brewfile installation (--skip-brew)"
+    else
+        echo "Skipping Brewfile installation (--skip-brew)"
+    fi
+elif [ "$DRY_RUN" = true ]; then
     echo "[DRY RUN] Would prompt to install Brewfile dependencies"
 else
-    # 6. Install Homebrew Packages
-    echo ""
     echo "Checking Homebrew..."
     if command -v brew &> /dev/null; then
-        read -p "Install Brewfile dependencies? (y/n) " -n 1 -r
-        echo
+        if [ -t 0 ]; then
+            read -p "Install Brewfile dependencies? (y/n) " -n 1 -r || REPLY="n"
+            echo
+        else
+            echo "Non-interactive session detected; skipping Brewfile dependencies."
+            REPLY="n"
+        fi
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             echo "Installing Brewfile dependencies..."
             brew bundle install --file "$DOTFILES_DIR/Brewfile"

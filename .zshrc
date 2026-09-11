@@ -1,8 +1,3 @@
-# Set up Homebrew environment early so all brew-installed tools are available
-if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-fi
-
 # Detect platform
 case "$(uname -s)" in
     Linux*)     PLATFORM=linux ;;
@@ -12,7 +7,7 @@ esac
 
 # Add deno completions to search path
 if [[ "$PLATFORM" == "Darwin" ]]; then
-    if [[ ":$FPATH:" != *":/Users/alancolver/completions:"* ]]; then export FPATH="/Users/alancolver/completions:$FPATH"; fi
+    if [[ ":$FPATH:" != *":/Users/acolver/completions:"* ]]; then export FPATH="/Users/acolver/completions:$FPATH"; fi
 fi
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -41,6 +36,22 @@ alias ssh='TERM=xterm-256color ssh'
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Homebrew environment
+if [[ -x "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x "/usr/local/bin/brew" ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
+    eval "$($HOME/.linuxbrew/bin/brew shellenv)"
+elif [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
+# Use Python from Homebrew (unversioned symlinks for python, pip, etc.)
+if [[ -n "$HOMEBREW_PREFIX" && -d "$HOMEBREW_PREFIX/opt/python/libexec/bin" ]]; then
+    export PATH="$HOMEBREW_PREFIX/opt/python/libexec/bin:$PATH"
 fi
 
 # If you come from bash you might have to change your $PATH.
@@ -102,12 +113,6 @@ BAT_THEME="tokyonight_storm"
 plugins=(bun deno direnv docker gcloud git tmux tmuxinator)
 source $ZSH/oh-my-zsh.sh
 
-
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/google-cloud-sdk/path.zsh.inc"; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-cloud-sdk/completion.zsh.inc"; fi
 
 # autoload -U +X bashcompinit && bashcompinit
 # if [[ "$PLATFORM" == "Darwin" ]]; then
@@ -178,6 +183,7 @@ alias ts-off='sudo tailscale down'
 
   alias ttyd-local="ttyd -i 0.0.0.0 -W zsh"
   alias v="nvim"
+  alias ag="agy --dangerously-skip-permissions"
 
   # Map caps key to esc
   # hidutil property --set \
@@ -499,7 +505,7 @@ alias ts-off='sudo tailscale down'
       fi
   }
 
-  eval "$(mise activate zsh)"
+  # eval "$(mise activate zsh)"
 
 
   # Caffeinate aliases - keep Mac awake
@@ -509,7 +515,7 @@ alias ts-off='sudo tailscale down'
 
 
       # OpenClaw Completion
-      source "/Users/alancolver/.openclaw/completions/openclaw.zsh"
+      source "/Users/acolver/.openclaw/completions/openclaw.zsh"
 
       # OpenClaw TUI aliases
       alias claw='openclaw tui'
@@ -770,3 +776,13 @@ hux() {
 }
 
 
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/acolver/.local/bin:$PATH"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/acolver/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/acolver/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/acolver/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/acolver/google-cloud-sdk/completion.zsh.inc'; fi

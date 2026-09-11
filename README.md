@@ -26,6 +26,9 @@ chmod +x install.sh
 
 # Run the install script
 ./install.sh
+
+# Or skip Homebrew package installation
+./install.sh --skip-brew
 ```
 
 The install script will:
@@ -36,7 +39,7 @@ The install script will:
 4. Link managed skills from `agents/skills/` into `~/.agents/skills/`
 5. Install Obra/Superpowers as a Pi package when `pi` is available
 6. Create a `.zshrc.local` template for your secrets
-7. Optionally install Homebrew packages
+7. Optionally install Homebrew packages (skip with `--skip-brew` or `--no-brew`)
 
 Use `--dry-run` to see what would happen without making any changes.
 
