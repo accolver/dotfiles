@@ -1,2 +1,7 @@
 [init]
 	defaultRefFormat = files
+[user]
+	name = Alan Colver
+	email = accolver@gmail.com
+[include]
+	path = ~/.gitconfig.local
