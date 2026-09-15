@@ -1,0 +1,5 @@
+interface:
+  display_name: "Merged"
+  short_description: "Clean up post-merge PR, worktrees, and sync main"
+policy:
+  allow_implicit_invocation: false

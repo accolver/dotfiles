@@ -13,6 +13,8 @@ Managed skills:
 - `codebase-design` from `mattpocock/skills`
 - `improve-codebase-architecture` from `mattpocock/skills`
 - `unslop` from `backnotprop/pstack`
+- `enterprise-agent-generator`
+- `merged` (post-merge PR, remote branch, and worktree cleanup)
 
 Superpowers is installed as a Pi package instead of vendored here:
 
@@ -23,3 +25,5 @@ pi install git:github.com/obra/superpowers
 Do not vendor a separate global `writing-skills` skill here. Superpowers
 provides `writing-skills`, and keeping an older copy in `~/.agents/skills`
 creates a duplicate-skill warning in Pi.
+
+`google-agents-cli` skills are installed globally via `bunx skills add google/agents-cli -g` into `~/.agents/skills` and mirrored across agent directories.
