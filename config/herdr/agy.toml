@@ -1,0 +1,110 @@
+id = "agy"
+version = "2026.09.18.1"
+min_engine_version = 1
+updated_at = "2026-09-18T00:00:00Z"
+aliases = ["antigravity", "antigravity-cli"]
+
+[[rules]]
+id = "permission_prompt"
+state = "blocked"
+priority = 1000
+region = "bottom_non_empty_lines(20)"
+visible_blocker = true
+contains = ["requesting permission for:"]
+any = [
+  { contains = ["do you want to proceed?"] },
+  { contains = ["tab amend", "edit command"] },
+  { contains = ["tab to amend"] },
+]
+
+[[rules]]
+id = "action_approval_prompt"
+state = "blocked"
+priority = 995
+region = "bottom_non_empty_lines(20)"
+visible_blocker = true
+any = [
+  { contains = ["Run this command?"] },
+  { contains = ["Approve this action?"] },
+  { contains = ["Yes, allow tool call"] },
+  { contains = ["Yes, allow access"] },
+]
+
+[[rules]]
+id = "ask_question_prompt"
+state = "blocked"
+priority = 990
+region = "bottom_non_empty_lines(20)"
+visible_blocker = true
+line_regex = ['(?i)^\s*Question\s+[1-9][0-9]*/[1-9][0-9]*:']
+any = [
+  { contains = ["Submit"] },
+  { contains = ["Skip"] },
+]
+
+[[rules]]
+id = "cancel_hint_working"
+state = "working"
+priority = 900
+region = "bottom_non_empty_lines(8)"
+visible_working = true
+line_regex = ['(?i)^\s*esc to cancel\b']
+not = [
+  { contains = ["requesting permission for:"] },
+  { contains = ["do you want to proceed?"] },
+  { contains = ["Run this command?"] },
+  { contains = ["Approve this action?"] },
+  { contains = ["Yes, allow tool call"] },
+  { contains = ["Yes, allow access"] },
+  { contains = ["Question "] },
+]
+
+[[rules]]
+id = "subagents_working"
+state = "working"
+priority = 880
+region = "bottom_non_empty_lines(8)"
+visible_working = true
+any = [
+  { line_regex = ['(?i)(?:·\s*[1-9][0-9]*\s+(?:active\s+)?subagents?(\(s\))?|[1-9][0-9]*\s+(?:active\s+)?subagents?(\(s\))?|running\s+[1-9][0-9]*\s+subagents?)'] },
+  { line_regex = ['(?i)^\s*●\s+Agent\('] },
+]
+not = [
+  { contains = ["requesting permission for:"] },
+  { contains = ["Question "] },
+]
+
+[[rules]]
+id = "spinner_working"
+state = "working"
+priority = 870
+region = "bottom_non_empty_lines(8)"
+visible_working = true
+line_regex = ['^\s*[\u2800-\u28FF]+\s+\S']
+not = [
+  { contains = ["requesting permission for:"] },
+  { contains = ["Question "] },
+]
+
+[[rules]]
+id = "background_tasks_working"
+state = "working"
+priority = 860
+region = "bottom_non_empty_lines(8)"
+visible_working = true
+line_regex = ['(?i)·\s*[1-9][0-9]*\s+task']
+not = [
+  { contains = ["requesting permission for:"] },
+  { contains = ["Question "] },
+]
+
+[[rules]]
+id = "shortcuts_idle"
+state = "idle"
+priority = 100
+region = "bottom_non_empty_lines(5)"
+visible_idle = true
+line_regex = ['(?i)^\s*\?\s+for\s+shortcuts\b']
+not = [
+  { contains = ["esc to cancel"] },
+]

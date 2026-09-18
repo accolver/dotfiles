@@ -238,6 +238,12 @@ if [ -f "$DOTFILES_DIR/config/herdr/config.toml" ] && [ -f "$DOTFILES_DIR/config
     mkdir -p "$HOME/.config/herdr"
     backup_and_link "$DOTFILES_DIR/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
     backup_and_link "$DOTFILES_DIR/config/herdr/smart-pane-nav.sh" "$HOME/.config/herdr/smart-pane-nav.sh"
+    if [ -f "$DOTFILES_DIR/config/herdr/agy.toml" ]; then
+        mkdir -p "$HOME/.config/herdr/agent-detection"
+        mkdir -p "$HOME/.local/state/herdr/agent-detection/remote"
+        backup_and_link "$DOTFILES_DIR/config/herdr/agy.toml" "$HOME/.config/herdr/agent-detection/agy.toml"
+        backup_and_link "$DOTFILES_DIR/config/herdr/agy.toml" "$HOME/.local/state/herdr/agent-detection/remote/agy.toml"
+    fi
 else
     echo "  Warning: Herdr static config files not found, skipping"
 fi

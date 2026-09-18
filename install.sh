@@ -237,6 +237,17 @@ if [ -f "$DOTFILES_DIR/config/herdr/config.toml" ] && [ -f "$DOTFILES_DIR/config
     fi
     backup_and_link "$DOTFILES_DIR/config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
     backup_and_link "$DOTFILES_DIR/config/herdr/smart-pane-nav.sh" "$HOME/.config/herdr/smart-pane-nav.sh"
+    if [ -f "$DOTFILES_DIR/config/herdr/agy.toml" ]; then
+        if [ "$DRY_RUN" = true ]; then
+            echo "  [DRY RUN] Would create $HOME/.config/herdr/agent-detection"
+            echo "  [DRY RUN] Would create $HOME/.local/state/herdr/agent-detection/remote"
+        else
+            mkdir -p "$HOME/.config/herdr/agent-detection"
+            mkdir -p "$HOME/.local/state/herdr/agent-detection/remote"
+        fi
+        backup_and_link "$DOTFILES_DIR/config/herdr/agy.toml" "$HOME/.config/herdr/agent-detection/agy.toml"
+        backup_and_link "$DOTFILES_DIR/config/herdr/agy.toml" "$HOME/.local/state/herdr/agent-detection/remote/agy.toml"
+    fi
 else
     echo "  Warning: Herdr static config files not found, skipping"
 fi
