@@ -779,7 +779,7 @@ hux() {
 
 
 # Added by Antigravity CLI installer
-export PATH="/Users/acolver/.local/bin:$PATH"
+export PATH="/Users/alancolver/.local/bin:$PATH"
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/Users/acolver/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/acolver/google-cloud-sdk/path.zsh.inc'; fi
