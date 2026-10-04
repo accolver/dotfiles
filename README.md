@@ -129,7 +129,7 @@ Currently managed:
 - `domain-modeling`
 - `codebase-design`
 - `improve-codebase-architecture`
-- `unslop`
+- `acolver-voice`
 
 The install scripts also install these Pi packages when `pi` is available:
 

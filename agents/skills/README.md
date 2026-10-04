@@ -12,7 +12,7 @@ Managed skills:
 - `domain-modeling` from `mattpocock/skills`
 - `codebase-design` from `mattpocock/skills`
 - `improve-codebase-architecture` from `mattpocock/skills`
-- `unslop` from `backnotprop/pstack`
+- `acolver-voice` (Alan Colver's authentic voice, style, and tone)
 - `enterprise-agent-generator`
 - `merged` (post-merge PR, remote branch, and worktree cleanup)
 
