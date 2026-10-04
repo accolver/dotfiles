@@ -1,5 +1,21 @@
 return {
   {
+    "MeanderingProgrammer/render-markdown.nvim",
+    opts = {
+      heading = {
+        -- Distinguish heading levels without requiring special font glyphs.
+        icons = { "◉ ", "○ ", "◆ ", "◇ ", "▸ ", "▹ " },
+        position = "inline",
+      },
+      checkbox = { enabled = true },
+      code = {
+        border = "thin",
+        left_pad = 2,
+        right_pad = 2,
+      },
+    },
+  },
+  {
     "mfussenegger/nvim-lint",
     optional = true,
     opts = function(_, opts)

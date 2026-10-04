@@ -10,10 +10,12 @@ Markdown spellcheck is off by default so names and technical terms are not
 underlined. Other filetypes keep their normal linting and spellcheck.
 Use `:setlocal spell` to enable spellcheck in the current window.
 
-The existing `render-markdown.nvim` plugin renders headings, code blocks, tables,
-and links inside Neovim. Rendering is enabled by default in normal mode; the
-cursor line reveals its source for editing. This is a rendered source editor,
-not a full Typora-style WYSIWYG editor.
+The existing `render-markdown.nvim` plugin renders headings with level-specific
+icons and colored backgrounds, task checkboxes, padded code blocks with thin
+borders, tables, and links inside Neovim. Rendering is enabled by default in
+normal mode; the cursor line reveals its source for editing, and insert mode
+shows the source. This is a rendered source editor, not a full Typora-style
+WYSIWYG editor.
 
 - `<leader>um` toggles in-editor Markdown rendering.
 - `<leader>cp` toggles the browser preview for Markdown.
