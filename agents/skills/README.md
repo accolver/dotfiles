@@ -15,6 +15,17 @@ Managed skills:
 - `acolver-voice` (Alan Colver's authentic voice, style, and tone)
 - `enterprise-agent-generator`
 - `merged` (post-merge PR, remote branch, and worktree cleanup)
+- `agent-platform-migrate-from-ai-studio` from `google/skills`
+- `google-cloud-recipe-auth` from `google/skills`
+- `google-cloud-recipe-foundation-builder` from `google/skills`
+- `google-cloud-solution-architecture` from `google/skills`
+- `google-cloud-solution-multi-agent-security` from `google/skills`
+- `google-cloud-solution-agentic-ai-borderless-data-lakehouse` from `google/skills`
+- `google-cloud-storage-bucket-architect` from `google/skills`
+- `secops-cases` from `google/skills`
+- `google-cloud-scc-query` from `google/skills`
+- `gcloud` from `google/skills`
+- `retrieving-developer-knowledge` from `google/skills`
 
 Superpowers is installed as a Pi package instead of vendored here:
 
