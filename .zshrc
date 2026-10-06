@@ -184,6 +184,9 @@ alias ts-off='sudo tailscale down'
   alias ttyd-local="ttyd -i 0.0.0.0 -W zsh"
   alias v="nvim"
   alias ag="agy --dangerously-skip-permissions"
+  alias j="jetski --dangerously-skip-permissions"
+  alias ct="ssh acolver.c.googlers.com"
+  alias cloudtop="ssh acolver.c.googlers.com"
 
   # Map caps key to esc
   # hidutil property --set \
